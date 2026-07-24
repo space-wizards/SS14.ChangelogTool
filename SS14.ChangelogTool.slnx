@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="SS14.ChangelogTool.Tests/SS14.ChangelogTool.Tests.csproj" />
+  <Project Path="SS14.ChangelogTool/SS14.ChangelogTool.csproj" />
+</Solution>
