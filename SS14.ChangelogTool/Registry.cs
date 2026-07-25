@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.CommandLine;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -49,9 +50,21 @@ public static class Registry
             .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))));
         services.AddSingleton<ChangelogGeneratorService>();
 
-        services.AddSingleton<UpdateCommand>();
-        services.AddSingleton<DumpDiffCommand>();
-        services.AddSingleton<SendWebhookCommand>();
+        services.AddSingleton<Command, UpdateCommand>();
+        services.AddSingleton<Command, DumpDiffCommand>();
+        services.AddSingleton<Command, SendWebhookCommand>();
+
+        services.AddSingleton<RootCommand>(sp =>
+        {
+            var rootCommand = new RootCommand("Changelog generator for SS14");
+            var commands = sp.GetServices<Command>();
+            foreach (var command in commands)
+            {
+                rootCommand.Subcommands.Add(command);
+            }
+
+            return rootCommand;
+        });
 
         services.AddHttpClient<IGitHubPullRequestService>();
         return services;
