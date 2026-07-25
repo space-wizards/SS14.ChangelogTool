@@ -6,20 +6,27 @@ Configuration
 Set the following environment variables (or bind them in your environment) before running:
 
 ```
+# repository to inspect for missed changes in PRs
 REPO=space-wizards/space-station-14
+# name of branch to inspect for missed changes in PRs
 BRANCH=master
+# path to changelog files inside repo
 CHANGELOG_REPO_PATH=Resources/Changelog
+# comma-separated list of additional changelog categories; creates/updates separate YAML files like Admin.yml, Maps.yml, etc.
 EXTRA_CATEGORIES=Admin,Maps,Rules
+# GitHub personal access token or Actions workflow token with read access to pull requests
 GITHUB_TOKEN=<github personal access token or workflow token>
+# Discord webhook URL for the send-webhook command; if omitted, repsective command will throw
 DISCORD_WEBHOOK=<discord webhook url>
+# maximum number of characters per Discord message; longer diffs are split into multiple messages if possible
 DISCORD_WEBHOOK_CHARACTER_LIMIT=2000
+# maximum number of changelog entries to keep per file; oldest entries are pruned first
 MAX_CHANGELOG_ENTRIES=500
+# maximum number of GraphQL pages to traverse; raise this if you haven't updated the changelog in months
+MAX_GRAPQHL_PAGES=50
 ```
 
-Notes on configuration
-- Options are bound to `ChangelogConfigOptions` and validated on startup via `ValidateOnStart()` and a custom validator.
-
-Core commands
+### Core commands
 - Update changelogs
 
   Updates the changelog YAML files by finding PRs merged since the last changelog entry and appending parsed changes.
@@ -32,10 +39,12 @@ Core commands
 - Dump diff
 
   Produces a human-readable markdown file containing changes since a ref SHA.
+  Optionally exclude a category (e.g. `Admin`) from the output with `--except-category`.
 
-  Example:
+  Examples:
   ```powershell
   dotnet run --project SS14.ChangelogTool -- dump-diff -s <ref-sha> -c diff.md
+  dotnet run --project SS14.ChangelogTool -- dump-diff -s <ref-sha> -c diff.md --except-category Admin
   ```
 
 - Send webhook
@@ -48,36 +57,64 @@ Core commands
   dotnet run --project SS14.ChangelogTool -- send-webhook -c diff.md
   ```
 
-Architecture notes
+### Architecture notes
 - Commands are registered in DI as `UpdateCommand`, `DumpDiffCommand`, and `SendWebhookCommand`.
 - File operations are abstracted behind `IFileManager` and the code uses 
+- Options are bound to `ChangelogConfigOptions` and validated on startup via `ValidateOnStart()` and a custom validator.
+- Use `System.IO.Abstractions` where possible for better testability
 
-Testing
-- Unit tests live in `SS14.ChangelogTool.Tests`. Run them with:
+
+### Testing
+- Unit tests live in `SS14.ChangelogTool.Tests`. Use XUnit, NSubstitute, if needed - can check manipulations by using interfaces that are provided by System.IO.Abstractions. Run tests with:
 
 ```powershell
 dotnet test
 ```
 
-- Tests use `System.IO.Abstractions.TestingHelpers` where possible. Some end-to-end tests run against the real file system by design.
-
-Building
+### Building
 
 ```powershell
 dotnet build
 ```
 
-Development workflow
-- Typical publish testing:
+
+### CI/CD workflows
+
+This repository has two GitHub Actions workflows:
+
+- **Build and Test** (`.github/workflows/build.yml`) — runs on every pull request to `master`.  
+  Restores dependencies, builds in Release mode, and runs all tests.
+
+- **Build and Publish** (`.github/workflows/publish.yml`) — runs when a tag matching `v*` is pushed.  
+  Builds, tests, packs the project into a NuGet package, and pushes it to `https://api.nuget.org/v3/index.json`  
+  using the `NUGET_API_KEY` secret.
+
+  The project is configured as a **.NET tool** with the command name `ss14-changelog`.  
+  After publishing, anyone can install and run it.
+
+### HOW TO USE
+
+Tool installation:
+```powershell
+dotnet tool install --global SS14.ChangelogTool
+ss14-changelog --help
+```
+
+To update to the latest version:
+```powershell
+dotnet tool update --global SS14.ChangelogTool
+```
+
+Using tool: 
 
 ```powershell
-dotnet run --project SS14.ChangelogTool -- update -d C:\path\to\Resources\Changelog
+ss14-changelog update -d C:\path\to\Resources\Changelog
 # commit updated YMLs, build, run publish tests
 ```
 
 - Creating a diff for a stable publish:
 
 ```powershell
-dotnet run --project SS14.ChangelogTool -- dump-diff -s <last-publish-ref> -c diff.md
-dotnet run --project SS14.ChangelogTool -- send-webhook -c diff.md
+ss14-changelog -- dump-diff -s <last-publish-ref> -c diff.md
+ss14-changelog -- send-webhook -c diff.md
 ```
