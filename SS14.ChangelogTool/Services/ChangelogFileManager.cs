@@ -108,9 +108,12 @@ public class ChangelogFileManager(ILogger<ChangelogFileManager> logger, IFileSys
             var deserializer = new DeserializerBuilder()
                 .Build();
 
-            var streamToRead = fileSystem.File.OpenRead(changelogYmlPath);
-            var content = new StreamReader(streamToRead);
-            var result = deserializer.Deserialize<ChangelogContainer>(content);
+            ChangelogContainer result;
+            using (var streamToRead = fileSystem.File.OpenRead(changelogYmlPath))
+            {
+                var content = new StreamReader(streamToRead);
+                result = deserializer.Deserialize<ChangelogContainer>(content);
+            }
 
             var entries = result.Entries;
 
@@ -122,7 +125,7 @@ public class ChangelogFileManager(ILogger<ChangelogFileManager> logger, IFileSys
                 result.Entries.Add(changelogEntry);
             }
 
-            var exceededBy = _maxChangelogEntries - entries.Count;
+            var exceededBy = entries.Count - _maxChangelogEntries;
             if (exceededBy > 0)
             {
                 entries = entries.Skip(exceededBy)

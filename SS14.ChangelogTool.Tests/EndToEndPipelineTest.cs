@@ -55,9 +55,9 @@ public class EndToEndPipelineTest
         var virtualDir = CopyExistingChangelogs();
 
         var sp = services.BuildServiceProvider();
+        var command = sp.GetRequiredService<UpdateCommand>();
 
         // Act: invoke UpdateCommand just like the real program does
-        var command = sp.GetRequiredService<UpdateCommand>();
         var parseResult = command.Parse($"update --changelog-dir \"{virtualDir}\"");
         parseResult.Invoke();
 
@@ -65,7 +65,20 @@ public class EndToEndPipelineTest
         var changelogPath = Path.Combine(virtualDir, "Changelog.yml");
         var updatedContent = File.ReadAllText(changelogPath);
 
-        // Verify pre-existing entries are still there
+        // Verify pre-existing entries and new ones are still there
+        const string oldEntryExistingAfterRolling =
+            """
+            - author: ThatGuyUSA
+              changes:
+              - type: Add
+                message: There are more IDs and icons that can be used for a variety of roles.
+              id: 9355
+              time: '2026-01-06T10:41:32.0000000+00:00'
+              url: https://github.com/space-wizards/space-station-14/pull/42200
+            """;
+
+        Assert.Contains(oldEntryExistingAfterRolling, updatedContent);
+
         const string expectedEntry = """
                                      - author: TestUser
                                        changes:
