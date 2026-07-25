@@ -1,11 +1,8 @@
-using GraphQL;
-using GraphQL.Client.Http;
-using GraphQL.Client.Serializer.SystemTextJson;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SS14.ChangelogTool.Clients;
 using SS14.ChangelogTool.Models;
 using SS14.ChangelogTool.Models.GitHub;
-using SS14.ChangelogTool.Models.GraphQL;
 using SS14.ChangelogTool.Options;
 using YamlDotNet.Serialization;
 
@@ -13,16 +10,15 @@ namespace SS14.ChangelogTool.Services;
 
 /// <inheritdoc/>
 public class GitHubPullRequestService(
-    HttpClient ghHttpClient,
+    HttpClient ghFileHttpClient,
+    IGithubPullRequestClient ghPullRequestClient,
     IOptions<ChangelogConfigOptions> options,
     ILogger<GitHubPullRequestService> logger
 ) : IGitHubPullRequestService
 {
-    private static readonly SystemTextJsonSerializer SystemTextJsonSerializer = new();
     private readonly ChangelogConfigOptions _options = options.Value;
     private readonly ILogger<GitHubPullRequestService> _logger = logger;
 
-    private const string GithubGraphQLApiBase = "https://api.github.com/graphql";
     private const string GithubRawDownloadBase = "https://raw.githubusercontent.com";
 
     /// <inheritdoc/>
@@ -59,69 +55,10 @@ public class GitHubPullRequestService(
     /// <inheritdoc/>
     public async Task<IReadOnlyCollection<GitHubPullRequest>> GetDiff(DateTimeOffset olderThen)
     {
-        var pullRequests = new List<GitHubPullRequest>();
-
-        var date = olderThen.ToString("yyyy-MM-dd");
-        var page = 0;
-        string? afterCursor = null;
-
         var repo = _options.Repo;
         var branch = _options.Branch;
-        var token = _options.GithubToken;
 
-        while (page <= _options.MaxPages)
-        {
-            page++;
-
-            string afterCursorString = afterCursor is null ? "null" : $"\"{afterCursor}\"";
-
-            var query = $$"""
-                          {
-                            search(first: 50, query: "is:pr repo:{{repo}} base:{{branch}} is:merged merged:>={{date}}", type: ISSUE, after: {{afterCursorString}}) {
-                              edges {
-                                node {
-                                  ... on PullRequest {
-                                    merged
-                                    body
-                                    user: author {
-                                      login
-                                    }
-                                    mergedAt
-                                    base: baseRef {
-                                      ref: name
-                                    }
-                                    number
-                                    html_url: url
-                                  }
-                                }
-                              }
-                              pageInfo {
-                                hasNextPage
-                                endCursor
-                              }
-                            }
-                          }
-                          """;
-
-            var client = new GraphQLHttpClient(GithubGraphQLApiBase, SystemTextJsonSerializer, ghHttpClient);
-            client.HttpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
-
-            var request = new GraphQLRequest(query);
-            var response = await client.SendQueryAsync<GraphQLResponse>(request);
-
-            foreach (var edge in response.Data.Search.Edges)
-            {
-                if (edge.Node.MergedAt <= olderThen)
-                    continue;
-
-                pullRequests.Add(edge.Node);
-            }
-
-            if (!response.Data.Search.PageInfo.HasNextPage)
-                break;
-
-            afterCursor = response.Data.Search.PageInfo.EndCursor;
-        }
+        var pullRequests = await ghPullRequestClient.GetPullRequestsOlderThen(repo, branch, olderThen);
 
         pullRequests = pullRequests.OrderBy(item => item.MergedAt!.Value)
             .ToList();
@@ -134,7 +71,7 @@ public class GitHubPullRequestService(
         var refChangelogUrl = $"{GithubRawDownloadBase}/{_options.Repo}/{sinceRefSha}/{_options.ChangelogRepoPath}/{category}.yml";
         HttpRequestMessage request = new(HttpMethod.Get, refChangelogUrl);
         request.Headers.Add("Authorization", $"Bearer {_options.GithubToken}");
-        var response = ghHttpClient.Send(request);
+        var response = ghFileHttpClient.Send(request);
         if (!response.IsSuccessStatusCode)
         {
             throw new Exception("Could not get changelog content: " + response.Content.ReadAsStringAsync().Result);
