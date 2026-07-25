@@ -96,5 +96,3 @@ dotnet run --project SS14.ChangelogTool -- update -d C:\path\to\Resources\Change
 dotnet run --project SS14.ChangelogTool -- dump-diff -s <last-publish-ref> -c diff.md
 dotnet run --project SS14.ChangelogTool -- send-webhook -c diff.md
 ```
-
-If you'd like, I can also add a short example workflow file for GitHub Actions that demonstrates using `dump-diff` and `send-webhook`.
