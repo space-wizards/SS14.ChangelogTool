@@ -30,7 +30,8 @@ public sealed class ChangelogConfigOptions
     public required string ChangelogRepoPath { get; set; }
 
     /// <summary>
-    /// The extra categories to scan. E.g. for wizden there is Admin, Maps and Rules
+    /// The extra categories to scan. E.g. for wizden there is Admin, Maps and Rule.
+    /// IF multiple needed - separate them using ','.
     /// </summary>
     [ConfigurationKeyName("EXTRA_CATEGORIES")]
     public string? ExtraCategories { get; set; }

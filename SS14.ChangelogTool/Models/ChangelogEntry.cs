@@ -34,7 +34,7 @@ public sealed class ChangelogEntry
     /// Merge time for PR.
     /// </summary>
     [YamlMember(Alias = "time", Order = 3, ScalarStyle = ScalarStyle.SingleQuoted)]
-    public required string Time { get; set; }
+    public required string? Time { get; set; }
 
     /// <summary>
     /// List of changes done.

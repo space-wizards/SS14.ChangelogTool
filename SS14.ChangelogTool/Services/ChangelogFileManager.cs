@@ -47,6 +47,9 @@ public class ChangelogFileManager(ILogger<ChangelogFileManager> logger, IFileSys
 
             foreach (var entry in container.Entries)
             {
+                if(entry.Time == null)
+                    continue;
+
                 var prMergeTime = DateTimeOffset.Parse(entry.Time.Replace("\'", string.Empty));
                 if (prMergeTime <= lastMergeForCategory)
                     continue;
@@ -75,7 +78,7 @@ public class ChangelogFileManager(ILogger<ChangelogFileManager> logger, IFileSys
 
         foreach (var (category, changelogEntries) in changelogParts)
         {
-            if (exceptCategory != null && category != exceptCategory)
+            if (exceptCategory != null && category == exceptCategory)
                 continue;
 
             foreach (var changelogEntry in changelogEntries)
