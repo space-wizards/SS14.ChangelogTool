@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.IO.Abstractions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Http.Headers;
@@ -11,7 +12,7 @@ namespace SS14.ChangelogTool.Services;
 /// <summary>
 /// Service for working with posting changelog onto discord by discord webhooks.
 /// </summary>
-public class DiscordWebhookService(HttpClient client, IOptions<ChangelogConfigOptions> options, ILogger<DiscordWebhookService> logger)
+public class DiscordWebhookService(HttpClient client, IFileSystem fileSystem, IOptions<ChangelogConfigOptions> options, ILogger<DiscordWebhookService> logger)
 {
     private readonly ChangelogConfigOptions _options = options.Value;
 
@@ -24,13 +25,13 @@ public class DiscordWebhookService(HttpClient client, IOptions<ChangelogConfigOp
         if (discordHook is null)
             throw new Exception("Discord webhook is not set in environment or could not be read from .env in working dir");
 
-        using var contentStreamReader = new StreamReader(changelogMarkdownPath);
+        using var stream = fileSystem.File.OpenRead(changelogMarkdownPath);
+        using var contentStreamReader = new StreamReader(stream);
 
         var characterLimit = _options.DiscordWebhookCharacterLimit;
         var sb = new StringBuilder(characterLimit);
 
         var nextLine = await contentStreamReader.ReadLineAsync();
-
         while (nextLine is not null)
         {
             sb.Append(nextLine + "\n");
@@ -40,7 +41,7 @@ public class DiscordWebhookService(HttpClient client, IOptions<ChangelogConfigOp
             if (nextLine is null)
                 break;
 
-            // if we not going to exceed the discord limit with the next message, continue adding lines
+            // if we are not going to exceed the discord limit with the next message, continue adding lines
             if (sb.Length + nextLine.Length < characterLimit)
                 continue;
 
@@ -81,7 +82,7 @@ public class DiscordWebhookService(HttpClient client, IOptions<ChangelogConfigOp
             {
                 if (response.StatusCode == HttpStatusCode.BadRequest)
                 {
-                    logger.LogError("Bad request response received, cancelling: {Response}", response.Content.ReadAsStringAsync().Result);
+                    logger.LogError("Bad request response received, cancelling: {Response}", await response.Content.ReadAsStringAsync());
                     return false;
                 }
 
@@ -91,7 +92,7 @@ public class DiscordWebhookService(HttpClient client, IOptions<ChangelogConfigOp
                     return false;
                 }
 
-                logger.LogError("Received unexpected response status code ({StatusCode}), cancelling: {Response}", response.StatusCode, response.Content.ReadAsStringAsync().Result);
+                logger.LogError("Received unexpected response status code ({StatusCode}), cancelling: {Response}", response.StatusCode, await response.Content.ReadAsStringAsync());
                 return false;
             }
 

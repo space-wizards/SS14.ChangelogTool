@@ -40,8 +40,9 @@ public static class Registry
             builder.SetMinimumLevel(LogLevel.Information);
         });
         services.AddSingleton<IChangelogFileManager, ChangelogFileManager>();
-            services.AddSingleton<IPullRequestParserService, ChangelogParserService>();
-            services.AddSingleton<IGitHubPullRequestService, GitHubPullRequestService>();
+        services.AddSingleton<IPullRequestParserService, ChangelogParserService>();
+        services.AddSingleton<IGitHubPullRequestService, GitHubPullRequestService>();
+        services.AddSingleton<IGithubPullRequestClient, GithubPullRequestClient>();
         services.AddSingleton<System.IO.Abstractions.IFileSystem>(sp => new System.IO.Abstractions.FileSystem());
         // Register typed HttpClient for DiscordWebhook with a retry policy
         services.AddHttpClient<DiscordWebhookService>(client => client.Timeout = TimeSpan.FromSeconds(30))
@@ -58,6 +59,8 @@ public static class Registry
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {options.GithubToken}");
             }
         );
+
+        services.AddHttpClient<GitHubPullRequestService>(client => client.Timeout = TimeSpan.FromSeconds(30));
 
         services.AddSingleton<IGraphQLClient>(sp =>
         {
@@ -84,7 +87,6 @@ public static class Registry
             return rootCommand;
         });
 
-        services.AddHttpClient<IGitHubPullRequestService>();
         return services;
     }
 }

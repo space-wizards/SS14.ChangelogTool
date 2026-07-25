@@ -5,7 +5,10 @@ using SS14.ChangelogTool.Models.GitHub;
 using SS14.ChangelogTool.Options;
 using SS14.ChangelogTool.Services;
 using System.CommandLine;
+using System.IO.Abstractions;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace SS14.ChangelogTool.Tests;
 
@@ -474,6 +477,97 @@ public class EndToEndPipelineTest : IDisposable
 
     #endregion
 
+    #region SendWebhook
+
+    [Fact]
+    public async Task SendWebhookCommandSendsChangelogToDiscord()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.RegisterDependencies();
+
+        OverrideOptions(services);
+
+        // Mock the HttpMessageHandler so the real service runs against a fake HTTP endpoint
+        var mockHandler = new MockHttpMessageHandler(new HttpResponseMessage(System.Net.HttpStatusCode.OK));
+        var httpClient = new HttpClient(mockHandler);
+
+        services.RemoveAll<DiscordWebhookService>();
+        services.AddSingleton(
+            sp => new DiscordWebhookService(
+                httpClient, 
+                sp.GetRequiredService<IFileSystem>(), 
+                sp.GetRequiredService<IOptions<ChangelogConfigOptions>>(), 
+                sp.GetRequiredService<ILogger<DiscordWebhookService>>()
+            )
+        );
+
+        // Create a temporary markdown file
+        var virtualDir = Path.Combine(Path.GetTempPath(), "ss14_sendwebhook_test_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(virtualDir);
+        var mdPath = Path.Combine(virtualDir, "diff.md");
+        await File.WriteAllTextAsync(mdPath, "# Changelog\n\n- Some changes!");
+
+        var sp = services.BuildServiceProvider();
+        var command = sp.GetRequiredService<RootCommand>();
+
+        // Act
+        var parseResult = command.Parse($"send-webhook --changelog-md-path \"{mdPath}\"");
+        var exitCode = await parseResult.InvokeAsync();
+
+        // Assert: exit code 0 and the real service actually sent an HTTP POST with the file content
+        Assert.Equal(0, exitCode);
+        Assert.Equal(1, mockHandler.Called);
+        Assert.Equal("https://discord.com/api/webhooks/test?wait=true", mockHandler.Urls.Single());
+        Assert.Equal(
+            """
+            {"content":"# Changelog\n\n- Some changes!\n","allowed_mentions":{"parse":[]},"flags":4}
+            """,
+            mockHandler.Requests.Single()
+        );
+    }
+
+    [Fact]
+    public async Task SendWebhookCommandReturnsErrorOnBadRequest()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.RegisterDependencies();
+
+        OverrideOptions(services);
+
+        // Mock the HttpMessageHandler so the real service runs against a fake HTTP endpoint
+        var mockHandler = new MockHttpMessageHandler(new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest));
+        var httpClient = new HttpClient(mockHandler);
+
+        services.RemoveAll<DiscordWebhookService>();
+        services.AddSingleton(
+            sp => new DiscordWebhookService(
+                httpClient,
+                sp.GetRequiredService<IFileSystem>(),
+                sp.GetRequiredService<IOptions<ChangelogConfigOptions>>(),
+                sp.GetRequiredService<ILogger<DiscordWebhookService>>()
+            )
+        );
+
+        var virtualDir = Path.Combine(Path.GetTempPath(), "ss14_sendwebhook_fail_test_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(virtualDir);
+        var mdPath = Path.Combine(virtualDir, "diff.md");
+        await File.WriteAllTextAsync(mdPath, "# Changelog\n\n- Some changes!");
+
+        var sp = services.BuildServiceProvider();
+        var command = sp.GetRequiredService<RootCommand>();
+
+        // Act
+        var parseResult = command.Parse($"send-webhook --changelog-md-path \"{mdPath}\"");
+        var exitCode = await parseResult.InvokeAsync();
+
+        // Assert: exit code 1, the request was still made but the API rejected it
+        Assert.Equal(1, exitCode);
+        Assert.Equal(1, mockHandler.Called);
+    }
+
+    #endregion
 
     private string CopyExistingChangelogs()
     {
@@ -499,7 +593,9 @@ public class EndToEndPipelineTest : IDisposable
             ChangelogRepoPath = ".",
             MaxPages = 1,
             MaxChangelogEntries = maxLogEntries ?? 500,
-            ExtraCategories = extraCategories
+            ExtraCategories = extraCategories,
+            DiscordWebHook = "https://discord.com/api/webhooks/test",
+            DiscordWebhookCharacterLimit = 2000,
         };
         services.AddSingleton(Microsoft.Extensions.Options.Options.Create(config));
     }
@@ -509,4 +605,24 @@ public class EndToEndPipelineTest : IDisposable
         if(Path.Exists(_tempPath))
             Directory.Delete(_tempPath, true);
     }
+
+    private class MockHttpMessageHandler(HttpResponseMessage responseMessage) : HttpMessageHandler
+    {
+        public int Called { private set; get; }
+
+        public List<string> Requests { get; } = new();
+
+        public List<string> Urls { get; } = new();
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            var content = await request.Content?.ReadAsStringAsync(cancellationToken)!;
+            Requests.Add(content);
+            Urls.Add(request.RequestUri?.ToString()!);
+            Called++;
+            return responseMessage;
+        }
+    }
 }
+
