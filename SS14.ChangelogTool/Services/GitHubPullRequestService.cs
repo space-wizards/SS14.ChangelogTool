@@ -35,15 +35,9 @@ public class GitHubPullRequestService(
 
         foreach (var category in allCategories)
         {
-            var response = GetChangelogByRef(sinceRefSha, category);
-
-            using var reader = new StreamReader(response.Content.ReadAsStream());
-            var deserializer = new DeserializerBuilder()
-                .Build();
-
-            var result = deserializer.Deserialize<ChangelogContainer>(reader);
+            var changelogContainer = GetChangelogByRef(sinceRefSha, category);
             var categoryLastMergedTime = DateTimeOffset.MinValue;
-            foreach (var entry in result.Entries)
+            foreach (var entry in changelogContainer.Entries)
             {
                 if (string.IsNullOrWhiteSpace(entry.Time))
                     continue;
@@ -109,7 +103,7 @@ public class GitHubPullRequestService(
                           }
                           """;
 
-            var client = new GraphQLHttpClient(GithubGraphQLApiBase, SystemTextJsonSerializer);
+            var client = new GraphQLHttpClient(GithubGraphQLApiBase, SystemTextJsonSerializer, ghHttpClient);
             client.HttpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
 
             var request = new GraphQLRequest(query);
@@ -135,7 +129,7 @@ public class GitHubPullRequestService(
         return pullRequests;
     }
 
-    private HttpResponseMessage GetChangelogByRef(string sinceRefSha, string category)
+    private ChangelogContainer GetChangelogByRef(string sinceRefSha, string category)
     {
         var refChangelogUrl = $"{GithubRawDownloadBase}/{_options.Repo}/{sinceRefSha}/{_options.ChangelogRepoPath}/{category}.yml";
         HttpRequestMessage request = new(HttpMethod.Get, refChangelogUrl);
@@ -146,6 +140,10 @@ public class GitHubPullRequestService(
             throw new Exception("Could not get changelog content: " + response.Content.ReadAsStringAsync().Result);
         }
 
-        return response;
+        using var reader = new StreamReader(response.Content.ReadAsStream());
+        var deserializer = new DeserializerBuilder()
+            .Build();
+
+        return deserializer.Deserialize<ChangelogContainer>(reader);
     }
 }
