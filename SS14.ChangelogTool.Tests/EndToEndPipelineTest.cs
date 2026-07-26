@@ -9,12 +9,13 @@ using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Xunit.Abstractions;
 
 namespace SS14.ChangelogTool.Tests;
 
-public class EndToEndPipelineTest : IDisposable
+public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
 {
-    private string? _tempPath;
+    private readonly HashSet<string> _tempPaths = [];
 
     #region UpdateCommand
 
@@ -114,8 +115,9 @@ public class EndToEndPipelineTest : IDisposable
         services.AddSingleton(ghService);
 
         // Create a changelog with 5 old entries (at the rolling boundary)
-        _tempPath = Path.Combine(Path.GetTempPath(), "ss14_changelog_rolling_" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(_tempPath);
+        var tempPath = Path.Combine(Path.GetTempPath(), "ss14_changelog_rolling_" + Guid.NewGuid().ToString("N"));
+        _tempPaths.Add(tempPath);
+        Directory.CreateDirectory(tempPath);
 
         const string oldYaml = """
                                Entries:
@@ -155,17 +157,17 @@ public class EndToEndPipelineTest : IDisposable
                                  time: '2022-01-01T00:00:00.0000000+00:00'
                                  url: https://example.com/pr/5
                                """;
-        File.WriteAllText(Path.Combine(_tempPath, "Changelog.yml"), oldYaml);
+        File.WriteAllText(Path.Combine(tempPath, "Changelog.yml"), oldYaml);
 
         var sp = services.BuildServiceProvider();
         var command = sp.GetRequiredService<RootCommand>();
 
         // Act
-        var parseResult = command.Parse($"update --changelog-dir \"{_tempPath}\"");
+        var parseResult = command.Parse($"update --changelog-dir \"{tempPath}\"");
         parseResult.Invoke();
 
         // Assert: oldest entry was pruned, newest was added, max is 5
-        var changelogPath = Path.Combine(_tempPath, "Changelog.yml");
+        var changelogPath = Path.Combine(tempPath, "Changelog.yml");
         var updatedContent = File.ReadAllText(changelogPath);
 
         // Oldest entry should be gone
@@ -221,6 +223,7 @@ public class EndToEndPipelineTest : IDisposable
 
         // Assert: Main changelog contains entry
         var changelogContent = File.ReadAllText(Path.Combine(virtualDir, "Changelog.yml"));
+        outputHelper.WriteLine(changelogContent);
         Assert.Contains(
             """
             - author: CategoryUser
@@ -503,9 +506,10 @@ public class EndToEndPipelineTest : IDisposable
         );
 
         // Create a temporary markdown file
-        _tempPath = Path.Combine(Path.GetTempPath(), "ss14_sendwebhook_test_" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(_tempPath);
-        var mdPath = Path.Combine(_tempPath, "diff.md");
+        var tempPath = Path.Combine(Path.GetTempPath(), "ss14_sendwebhook_test_" + Guid.NewGuid().ToString("N"));
+        _tempPaths.Add(tempPath);
+        Directory.CreateDirectory(tempPath);
+        var mdPath = Path.Combine(tempPath, "diff.md");
         await File.WriteAllTextAsync(mdPath, "# Changelog\n\n- Some changes!");
 
         var sp = services.BuildServiceProvider();
@@ -550,9 +554,10 @@ public class EndToEndPipelineTest : IDisposable
             )
         );
 
-        _tempPath = Path.Combine(Path.GetTempPath(), "ss14_sendwebhook_fail_test_" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(_tempPath);
-        var mdPath = Path.Combine(_tempPath, "diff.md");
+        var tempPath = Path.Combine(Path.GetTempPath(), "ss14_sendwebhook_fail_test_" + Guid.NewGuid().ToString("N"));
+        _tempPaths.Add(tempPath);
+        Directory.CreateDirectory(tempPath);
+        var mdPath = Path.Combine(tempPath, "diff.md");
         await File.WriteAllTextAsync(mdPath, "# Changelog\n\n- Some changes!");
 
         var sp = services.BuildServiceProvider();
@@ -571,15 +576,16 @@ public class EndToEndPipelineTest : IDisposable
 
     private string CopyExistingChangelogs()
     {
-        _tempPath = Path.Combine(Path.GetTempPath(), "ss14_changelog_test_" + Guid.NewGuid().ToString("N"));
+        var tempPath = Path.Combine(Path.GetTempPath(), "ss14_changelog_test_" + Guid.NewGuid().ToString("N"));
+        _tempPaths.Add(tempPath);
         var resourceDir = Path.Combine(AppContext.BaseDirectory, "Resources");
-        Directory.CreateDirectory(_tempPath);
+        Directory.CreateDirectory(tempPath);
         foreach (var file in Directory.GetFiles(resourceDir, "*.yml"))
         {
-            File.Copy(file, Path.Combine(_tempPath, Path.GetFileName(file)));
+            File.Copy(file, Path.Combine(tempPath, Path.GetFileName(file)));
         }
 
-        return _tempPath;
+        return tempPath;
     }
 
     private static void OverrideOptions(ServiceCollection services, int? maxLogEntries = null, string? extraCategories = null)
@@ -602,8 +608,11 @@ public class EndToEndPipelineTest : IDisposable
 
     public void Dispose()
     {
-        if(Path.Exists(_tempPath))
-            Directory.Delete(_tempPath, true);
+        foreach (var tempPath in _tempPaths)
+        {
+            if (Path.Exists(tempPath))
+                Directory.Delete(tempPath, true);
+        }
     }
 
     private class MockHttpMessageHandler(HttpResponseMessage responseMessage) : HttpMessageHandler
