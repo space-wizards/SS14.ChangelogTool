@@ -83,11 +83,11 @@ public class ChangelogFileManager(ILogger<ChangelogFileManager> logger, IFileSys
 
             foreach (var changelogEntry in changelogEntries)
             {
-                writer.WriteLine($"**{changelogEntry.Author}** updated:");
+                writer.WriteLine($"**{changelogEntry.Author}** updated:  ");
                 foreach (var change in changelogEntry.Changes)
                 {
                     var emoji = Emojis[change.Type];
-                    writer.WriteLine($"{emoji} - {change.Message} ([#{changelogEntry.Number}]({changelogEntry.Url}))");
+                    writer.WriteLine($"{emoji} - {change.Message} ([#{changelogEntry.Number}]({changelogEntry.Url}))  ");
                 }
 
                 writer.WriteLine();

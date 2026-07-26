@@ -1,0 +1,30 @@
+{
+  "profiles": {
+    "dump-diff": {
+      "commandName": "Project",
+      "commandLineArgs": "dump-diff -s 3ba046fed59b75426b7942b1b69c56e9b481b036 -c diff.md",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "REPO": "space-wizards/space-station-14",
+        "BRANCH": "master",
+        "CHANGELOG_REPO_PATH": "Resources/Changelog",
+        "EXTRA_CATEGORIES": "",
+        "GITHUB_TOKEN": "PLACE YOUR TOKEN HERE",
+        "DISCORD_WEBHOOK": ""
+      }
+    },
+    "update": {
+      "commandName": "Project",
+      "commandLineArgs": "update -d C:\\path\\to\\Resources\\Changelog",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "REPO": "space-wizards/space-station-14",
+        "BRANCH": "master",
+        "CHANGELOG_REPO_PATH": "Resources/Changelog",
+        "EXTRA_CATEGORIES": "",
+        "GITHUB_TOKEN": "PLACE YOUR TOKEN HERE",
+        "DISCORD_WEBHOOK": ""
+      }
+    }
+  }
+}
