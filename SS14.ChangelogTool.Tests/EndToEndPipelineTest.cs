@@ -114,8 +114,8 @@ public class EndToEndPipelineTest : IDisposable
         services.AddSingleton(ghService);
 
         // Create a changelog with 5 old entries (at the rolling boundary)
-        var virtualDir = Path.Combine(Path.GetTempPath(), "ss14_changelog_rolling_" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(virtualDir);
+        _tempPath = Path.Combine(Path.GetTempPath(), "ss14_changelog_rolling_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(_tempPath);
 
         const string oldYaml = """
                                Entries:
@@ -155,17 +155,17 @@ public class EndToEndPipelineTest : IDisposable
                                  time: '2022-01-01T00:00:00.0000000+00:00'
                                  url: https://example.com/pr/5
                                """;
-        File.WriteAllText(Path.Combine(virtualDir, "Changelog.yml"), oldYaml);
+        File.WriteAllText(Path.Combine(_tempPath, "Changelog.yml"), oldYaml);
 
         var sp = services.BuildServiceProvider();
         var command = sp.GetRequiredService<RootCommand>();
 
         // Act
-        var parseResult = command.Parse($"update --changelog-dir \"{virtualDir}\"");
+        var parseResult = command.Parse($"update --changelog-dir \"{_tempPath}\"");
         parseResult.Invoke();
 
         // Assert: oldest entry was pruned, newest was added, max is 5
-        var changelogPath = Path.Combine(virtualDir, "Changelog.yml");
+        var changelogPath = Path.Combine(_tempPath, "Changelog.yml");
         var updatedContent = File.ReadAllText(changelogPath);
 
         // Oldest entry should be gone
@@ -503,9 +503,9 @@ public class EndToEndPipelineTest : IDisposable
         );
 
         // Create a temporary markdown file
-        var virtualDir = Path.Combine(Path.GetTempPath(), "ss14_sendwebhook_test_" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(virtualDir);
-        var mdPath = Path.Combine(virtualDir, "diff.md");
+        _tempPath = Path.Combine(Path.GetTempPath(), "ss14_sendwebhook_test_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(_tempPath);
+        var mdPath = Path.Combine(_tempPath, "diff.md");
         await File.WriteAllTextAsync(mdPath, "# Changelog\n\n- Some changes!");
 
         var sp = services.BuildServiceProvider();
@@ -550,9 +550,9 @@ public class EndToEndPipelineTest : IDisposable
             )
         );
 
-        var virtualDir = Path.Combine(Path.GetTempPath(), "ss14_sendwebhook_fail_test_" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(virtualDir);
-        var mdPath = Path.Combine(virtualDir, "diff.md");
+        _tempPath = Path.Combine(Path.GetTempPath(), "ss14_sendwebhook_fail_test_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(_tempPath);
+        var mdPath = Path.Combine(_tempPath, "diff.md");
         await File.WriteAllTextAsync(mdPath, "# Changelog\n\n- Some changes!");
 
         var sp = services.BuildServiceProvider();
