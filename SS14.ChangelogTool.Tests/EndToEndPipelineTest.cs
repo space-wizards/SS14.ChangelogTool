@@ -42,7 +42,7 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
                     - add: Integration test feature
                     """,
                     new GitHubUser("TestUser"),
-                    new DateTimeOffset(new DateTime(2022,12,5,12,3,5)),
+                    new DateTimeOffset(new DateTime(2022,12,5,12,3,5), TimeSpan.Zero),
                     new GitHubPullRequestBase("master"),
                     Number: 42,
                     "https://example.com/pr/42"
@@ -84,7 +84,7 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
                                        - type: Add
                                          message: Integration test feature
                                        id: 9862
-                                       time: '2022-12-05T12:03:05.0000000+03:00'
+                                       time: '2022-12-05T12:03:05.0000000+00:00'
                                        url: https://example.com/pr/42
                                      
                                      """;
@@ -107,7 +107,7 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
                 new GitHubPullRequest(true,
                     ":cl: \n- add: Fresh new entry",
                     new GitHubUser("NewUser"),
-                    DateTimeOffset.UtcNow,
+                    new DateTimeOffset(new DateTime(2022,12,5,12,3,5), TimeSpan.Zero),
                     new GitHubPullRequestBase("master"),
                     999,
                     "https://example.com/pr/999")
@@ -205,7 +205,7 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
                     - tweak: Tweaked map
                     """,
                     new GitHubUser("CategoryUser"),
-                    new DateTimeOffset(new DateTime(2024,1,15,8,0,0)),
+                    new DateTimeOffset(new DateTime(2024,1,15,8,0,0), TimeSpan.Zero),
                     new GitHubPullRequestBase("master"),
                     Number: 200,
                     "https://example.com/pr/200"
@@ -231,7 +231,7 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
               - type: Add
                 message: Added to main category
               id: 9862
-              time: '2024-01-15T08:00:00.0000000+03:00'
+              time: '2024-01-15T08:00:00.0000000+00:00'
               url: https://example.com/pr/200
             """,
             changelogContent
@@ -248,7 +248,7 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
               - type: Fix
                 message: Fixed admin stuff
               id: 232
-              time: '2024-01-15T08:00:00.0000000+03:00'
+              time: '2024-01-15T08:00:00.0000000+00:00'
               url: https://example.com/pr/200
             """,
             adminContent
@@ -265,7 +265,7 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
               - type: Tweak
                 message: Tweaked map
               id: 150
-              time: '2024-01-15T08:00:00.0000000+03:00'
+              time: '2024-01-15T08:00:00.0000000+00:00'
               url: https://example.com/pr/200
             """,
             mapsContent
@@ -292,7 +292,7 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
                     Just some regular description.
                     """,
                     new GitHubUser("NoClUser"),
-                    new DateTimeOffset(new DateTime(2023,3,10,14,0,0)),
+                    new DateTimeOffset(new DateTime(2023,3,10,14,0,0), TimeSpan.Zero),
                     new GitHubPullRequestBase("master"),
                     Number: 101,
                     "https://example.com/pr/101"
@@ -342,7 +342,7 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
                     - remove: Removed old thing
                     """,
                     new GitHubUser("MultiChangeUser"),
-                    new DateTimeOffset(new DateTime(2023,8,20,9,30,0)),
+                    new DateTimeOffset(new DateTime(2023,8,20,9,30,0), TimeSpan.Zero),
                     new GitHubPullRequestBase("master"),
                     Number: 150,
                     "https://example.com/pr/150"
@@ -396,7 +396,7 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
                     - add: Dump diff entry
                     """,
                     new GitHubUser("TestUser"),
-                    new DateTimeOffset(new DateTime(2023,6,1,10,0,0)),
+                    new DateTimeOffset(new DateTime(2023,6,1,10,0,0), TimeSpan.Zero),
                     new GitHubPullRequestBase("master"),
                     Number: 99,
                     "https://example.com/pr/99"
@@ -450,7 +450,7 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
                     - fix: Admin category entry
                     """,
                     new GitHubUser("ExcludeTestUser"),
-                    new DateTimeOffset(new DateTime(2024,5,1,12,0,0)),
+                    new DateTimeOffset(new DateTime(2024,5,1,12,0,0), TimeSpan.Zero),
                     new GitHubPullRequestBase("master"),
                     Number: 300,
                     "https://example.com/pr/300"
@@ -590,7 +590,7 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
 
     private static void OverrideOptions(ServiceCollection services, int? maxLogEntries = null, string? extraCategories = null)
     {
-        services.RemoveAll<Microsoft.Extensions.Options.IConfigureOptions<ChangelogConfigOptions>>();
+        services.RemoveAll<IConfigureOptions<ChangelogConfigOptions>>();
         var config = new ChangelogConfigOptions
         {
             Repo = "space-wizards/SS14.ChangelogTool",
