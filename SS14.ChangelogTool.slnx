@@ -1,5 +1,7 @@
 <Solution>
   <Folder Name="/Solution Items/">
+    <File Path=".github/workflows/build.yml" />
+    <File Path=".github/workflows/publish.yml" />
     <File Path="README.MD" />
   </Folder>
   <Project Path="SS14.ChangelogTool.Tests/SS14.ChangelogTool.Tests.csproj" />
