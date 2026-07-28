@@ -6,7 +6,7 @@ namespace SS14.ChangelogTool.Options;
 /// <summary>
 /// Class containing configuration. This is taken from the env variables or a .env file in the working directory
 /// </summary>
-public sealed class ChangelogConfigOptions
+public sealed class ChangelogToolOptions
 {
     /// <summary>
     /// The repository to use
@@ -67,4 +67,24 @@ public sealed class ChangelogConfigOptions
     /// </summary>
     [ConfigurationKeyName("MAX_CHANGELOG_ENTRIES")]
     public int MaxChangelogEntries { get; set; } = 500;
+
+    /// <summary>
+    /// Maximum retries number for gh api calls when they fail or requests have to consecutively waiting due to rate-limiting.
+    /// </summary>
+    [ConfigurationKeyName("MAX_RETRIES_FOR_GIT_HUB_API")]
+    public int MaxRetriesForGitHubApi { get; set; } = 12;
+
+    /// <summary>
+    /// Maximum wait time between attempts for gh api calls when call fails.
+    /// Uses exponential backoff retries, starts with <see cref="MinWaitForGitHubApiSeconds"/>.
+    /// </summary>
+    [ConfigurationKeyName("MAX_WAIT_FOR_GIT_HUB_API_SECONDS")]
+    public int MaxWaitForGitHubApiSeconds { get; set; } = 32;
+
+    /// <summary>
+    /// Minimum wait time between attempts for gh api calls when api call fails.
+    /// Uses exponential backoff retries.
+    /// </summary>
+    [ConfigurationKeyName("Min_WAIT_FOR_GIT_HUB_API_SECONDS")]
+    public int MinWaitForGitHubApiSeconds { get; set; } = 2;
 }

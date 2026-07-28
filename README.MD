@@ -24,6 +24,12 @@ DISCORD_WEBHOOK_CHARACTER_LIMIT=2000
 MAX_CHANGELOG_ENTRIES=500
 # maximum number of GraphQL pages to traverse; raise this if you haven't updated the changelog in months
 MAX_GRAPQHL_PAGES=50
+# maximum retries number for gh api calls when they fail or requests have to consecutively waiting due to rate-limiting
+MAX_RETRIES_FOR_GIT_HUB_API=12
+# maximum wait time between attempts for gh api calls when call fails; uses exponential backoff retries, starts with Min_WAIT_FOR_GIT_HUB_API_SECONDS
+MAX_WAIT_FOR_GIT_HUB_API_SECONDS=32
+# minimum wait time between attempts for gh api calls when api call fails; uses exponential backoff retries
+Min_WAIT_FOR_GIT_HUB_API_SECONDS=2
 ```
 
 ### Core commands

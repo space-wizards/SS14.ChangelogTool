@@ -12,9 +12,9 @@ namespace SS14.ChangelogTool.Services;
 /// <summary>
 /// Service for working with posting changelog onto discord by discord webhooks.
 /// </summary>
-public class DiscordWebhookService(HttpClient client, IFileSystem fileSystem, IOptions<ChangelogConfigOptions> options, ILogger<DiscordWebhookService> logger)
+public class DiscordWebhookService(HttpClient client, IFileSystem fileSystem, IOptions<ChangelogToolOptions> options, ILogger<DiscordWebhookService> logger)
 {
-    private readonly ChangelogConfigOptions _options = options.Value;
+    private readonly ChangelogToolOptions _options = options.Value;
 
     /// <summary>
     /// Sends changelog entries, located in files from provided path to discord.

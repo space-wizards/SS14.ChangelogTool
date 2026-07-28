@@ -404,7 +404,7 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
             ]);
 
         // Stub GetLastMergedFromRef to return a date that will trigger the diff
-        ghService.GetLastMergedFromRef(Arg.Any<string>(), Arg.Any<IReadOnlyCollection<string>>())
+        ghService.GetNewestChangelogEntryMergeDateByRef(Arg.Any<string>(), Arg.Any<IReadOnlyCollection<string>>())
             .Returns(new DateTimeOffset(2023, 1, 1, 0, 0, 0, TimeSpan.Zero));
 
         services.AddSingleton(ghService);
@@ -457,7 +457,7 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
                 )
             ]);
 
-        ghService.GetLastMergedFromRef(Arg.Any<string>(), Arg.Any<IReadOnlyCollection<string>>())
+        ghService.GetNewestChangelogEntryMergeDateByRef(Arg.Any<string>(), Arg.Any<IReadOnlyCollection<string>>())
             .Returns(new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero));
 
         services.AddSingleton(ghService);
@@ -500,7 +500,7 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
             sp => new DiscordWebhookService(
                 httpClient, 
                 sp.GetRequiredService<IFileSystem>(), 
-                sp.GetRequiredService<IOptions<ChangelogConfigOptions>>(), 
+                sp.GetRequiredService<IOptions<ChangelogToolOptions>>(), 
                 sp.GetRequiredService<ILogger<DiscordWebhookService>>()
             )
         );
@@ -549,7 +549,7 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
             sp => new DiscordWebhookService(
                 httpClient,
                 sp.GetRequiredService<IFileSystem>(),
-                sp.GetRequiredService<IOptions<ChangelogConfigOptions>>(),
+                sp.GetRequiredService<IOptions<ChangelogToolOptions>>(),
                 sp.GetRequiredService<ILogger<DiscordWebhookService>>()
             )
         );
@@ -590,8 +590,8 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
 
     private static void OverrideOptions(ServiceCollection services, int? maxLogEntries = null, string? extraCategories = null)
     {
-        services.RemoveAll<IConfigureOptions<ChangelogConfigOptions>>();
-        var config = new ChangelogConfigOptions
+        services.RemoveAll<IConfigureOptions<ChangelogToolOptions>>();
+        var config = new ChangelogToolOptions
         {
             Repo = "space-wizards/SS14.ChangelogTool",
             Branch = "master",

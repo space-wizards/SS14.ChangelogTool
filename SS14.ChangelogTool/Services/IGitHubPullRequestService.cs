@@ -8,12 +8,15 @@ namespace SS14.ChangelogTool.Services;
 public interface IGitHubPullRequestService
 {
     /// <summary>
-    /// Get date of last merged change since marked ref in repository.
+    /// Downloads changelog.yml file from GH content API by provided <see cref="refSha"/>
+    /// and extracts changelog entry with newest pr merge time, then outputs it.
+    /// Repo and branch are set by app settings.
+    /// Checks other changelog files if <see cref="extraCategories"/> are passed.
     /// </summary>
-    /// <param name="sinceRefSha">RefSha to be used for last merged change check.</param>
+    /// <param name="refSha">RefSha to be used for last merged change check.</param>
     /// <param name="extraCategories">Extra categories of changelogs to include. By default, only reads 'Changelog.yml'.</param>
     /// <returns></returns>
-    DateTimeOffset GetLastMergedFromRef(string sinceRefSha, IReadOnlyCollection<string> extraCategories);
+    DateTimeOffset GetNewestChangelogEntryMergeDateByRef(string refSha, IReadOnlyCollection<string> extraCategories);
 
     /// <summary>
     /// Gets list of pull-requests that have date of merge greater than provided one.

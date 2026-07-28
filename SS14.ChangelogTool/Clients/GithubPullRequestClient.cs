@@ -8,11 +8,11 @@ using SS14.ChangelogTool.Options;
 namespace SS14.ChangelogTool.Clients;
 
 /// <inheritdoc/>
-public class GithubPullRequestClient(IGraphQLClient graphQlClient, IOptions<ChangelogConfigOptions> options) : IGithubPullRequestClient
+public class GithubPullRequestClient(IGraphQLClient graphQlClient, IOptions<ChangelogToolOptions> options) : IGithubPullRequestClient
 {
     public const string GithubGraphQLApiBase = "https://api.github.com/graphql";
 
-    private readonly ChangelogConfigOptions _options = options.Value;
+    private readonly ChangelogToolOptions _options = options.Value;
     
     /// <inheritdoc/>
     public async Task<IReadOnlyCollection<GitHubPullRequest>> GetPullRequestsOlderThen(string repo, string branch, DateTimeOffset olderThen)

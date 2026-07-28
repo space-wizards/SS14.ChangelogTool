@@ -8,13 +8,13 @@ namespace SS14.ChangelogTool.Options;
 /// <summary>
 /// Specific validation because we will get data from Env variables which will be uppercased, so default validation won't do!
 /// </summary>
-public sealed class ChangelogConfigOptionsValidator : IValidateOptions<ChangelogConfigOptions>
+public sealed class ChangelogToolOptionsValidator : IValidateOptions<ChangelogToolOptions>
 {
-    public ValidateOptionsResult Validate(string? name, ChangelogConfigOptions options)
+    public ValidateOptionsResult Validate(string? name, ChangelogToolOptions options)
     {
         var failures = new List<string>();
 
-        foreach (var property in typeof(ChangelogConfigOptions).GetProperties(BindingFlags.Public | BindingFlags.Instance))
+        foreach (var property in typeof(ChangelogToolOptions).GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
             var required = property.GetCustomAttribute<RequiredAttribute>();
             if (required is null)

@@ -35,12 +35,11 @@ public sealed class DumpDiffCommand : Command
 
 		SetAction(async parseResult =>
             {
-
                 var sha = parseResult.GetValue(sinceRefShaOption)!;
                 var changelogMarkdownPath = parseResult.GetValue(changelogMarkdownPathOption)!;
                 var exceptCategory = parseResult.GetValue(exceptCategoryOption)!;
                 return await changelogGeneratorService.TryGenerate(
-                    extraCategories => gitHubService.GetLastMergedFromRef(sha, extraCategories),
+                    extraCategories => gitHubService.GetNewestChangelogEntryMergeDateByRef(sha, extraCategories),
                     changelogs => changelogFileManager.DumpChangelogToMarkdown(changelogMarkdownPath, changelogs, exceptCategory)
                 ) ? 0 : 1;
             }

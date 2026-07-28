@@ -8,7 +8,7 @@ using YamlDotNet.Serialization;
 namespace SS14.ChangelogTool.Services;
 
 /// <inheritdoc/>
-public class ChangelogFileManager(ILogger<ChangelogFileManager> logger, IFileSystem fileSystem, IOptions<ChangelogConfigOptions> options)
+public class ChangelogFileManager(ILogger<ChangelogFileManager> logger, IFileSystem fileSystem, IOptions<ChangelogToolOptions> options)
     : IChangelogFileManager
 {
     private readonly int _maxChangelogEntries = options.Value.MaxChangelogEntries;

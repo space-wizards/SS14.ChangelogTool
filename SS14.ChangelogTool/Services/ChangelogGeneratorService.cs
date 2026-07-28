@@ -8,11 +8,11 @@ namespace SS14.ChangelogTool.Services;
 public class ChangelogGeneratorService(
     IPullRequestParserService parserService,
     IGitHubPullRequestService githubService,
-    IOptions<ChangelogConfigOptions> options,
+    IOptions<ChangelogToolOptions> options,
     ILogger<ChangelogGeneratorService> logger
 )
 {
-    private readonly ChangelogConfigOptions _options = options.Value;
+    private readonly ChangelogToolOptions _options = options.Value;
 
     /// <summary>
     /// Generates new changelog files by collecting records

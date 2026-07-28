@@ -232,13 +232,13 @@ public class ChangelogParseTest
     public void OptionsValidationFailsWhenRequiredValuesMissing()
     {
         var services = new ServiceCollection();
-        services.AddOptions<ChangelogConfigOptions>()
+        services.AddOptions<ChangelogToolOptions>()
             .ValidateOnStart();
-        services.AddSingleton<IValidateOptions<ChangelogConfigOptions>, ChangelogConfigOptionsValidator>();
+        services.AddSingleton<IValidateOptions<ChangelogToolOptions>, ChangelogToolOptionsValidator>();
 
         var provider = services.BuildServiceProvider();
         var exception = Assert.Throws<OptionsValidationException>(() =>
-            provider.GetRequiredService<IOptions<ChangelogConfigOptions>>().Value);
+            provider.GetRequiredService<IOptions<ChangelogToolOptions>>().Value);
 
         Assert.Equal(4, exception.Failures.Count());
         Assert.Contains("Configuration 'REPO' is required.", exception.Failures);

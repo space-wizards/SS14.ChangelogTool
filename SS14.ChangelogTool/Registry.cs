@@ -24,11 +24,11 @@ public static class Registry
             .AddEnvironmentVariables()
             .Build();
 
-        services.AddOptions<ChangelogConfigOptions>()
+        services.AddOptions<ChangelogToolOptions>()
             .Bind(configuration)
             .ValidateOnStart();
 
-        services.AddSingleton<IValidateOptions<ChangelogConfigOptions>, ChangelogConfigOptionsValidator>();
+        services.AddSingleton<IValidateOptions<ChangelogToolOptions>, ChangelogToolOptionsValidator>();
 
         services.AddLogging(builder =>
         {
@@ -41,9 +41,22 @@ public static class Registry
         });
         services.AddSingleton<IChangelogFileManager, ChangelogFileManager>();
         services.AddSingleton<IPullRequestParserService, ChangelogParserService>();
-        services.AddSingleton<IGitHubPullRequestService, GitHubPullRequestService>();
+        services.AddSingleton<IGitHubPullRequestService, GitHubPullRequestService>(sp =>
+        {
+            var clientFactory = sp.GetRequiredService<IHttpClientFactory>();
+            var client = clientFactory.CreateClient(nameof(GitHubPullRequestService));
+            return new GitHubPullRequestService(client, sp.GetRequiredService<IGithubPullRequestClient>(),
+                sp.GetRequiredService<IOptions<ChangelogToolOptions>>(),
+                sp.GetRequiredService<ILogger<GitHubPullRequestService>>());
+        });
         services.AddSingleton<IGithubPullRequestClient, GithubPullRequestClient>();
         services.AddSingleton<System.IO.Abstractions.IFileSystem>(sp => new System.IO.Abstractions.FileSystem());
+
+        #region clients of different flavours
+
+        // handlers must not be reused
+        services.AddTransient<RetryHandler>();
+
         // Register typed HttpClient for DiscordWebhook with a retry policy
         services.AddHttpClient<DiscordWebhookService>(client => client.Timeout = TimeSpan.FromSeconds(30))
             .AddPolicyHandler(HttpPolicyExtensions.HandleTransientHttpError()
@@ -51,16 +64,16 @@ public static class Registry
                 .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
             );
 
-        services.AddHttpClient<GraphQLHttpClient>(
-            (sp, client) =>
+        services.AddHttpClient<GraphQLHttpClient>((sp, client) =>
             {
                 client.Timeout = TimeSpan.FromSeconds(30);
-                var options = sp.GetRequiredService<IOptions<ChangelogConfigOptions>>().Value;
+                var options = sp.GetRequiredService<IOptions<ChangelogToolOptions>>().Value;
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {options.GithubToken}");
             }
-        );
+        ).AddGitHubRetryHandler();
 
-        services.AddHttpClient<GitHubPullRequestService>(client => client.Timeout = TimeSpan.FromSeconds(30));
+        services.AddHttpClient<GitHubPullRequestService>(client => client.Timeout = TimeSpan.FromSeconds(30))
+            .AddGitHubRetryHandler();
 
         services.AddSingleton<IGraphQLClient>(sp =>
         {
@@ -68,6 +81,8 @@ public static class Registry
             var client = clientFactory.CreateClient(nameof(GraphQLHttpClient));
             return new GraphQLHttpClient(GithubPullRequestClient.GithubGraphQLApiBase, new SystemTextJsonSerializer(), client);
         });
+
+        #endregion
 
         services.AddSingleton<ChangelogGeneratorService>();
 
@@ -88,5 +103,10 @@ public static class Registry
         });
 
         return services;
+    }
+
+    public static void AddGitHubRetryHandler(this IHttpClientBuilder httpClientBuilder)
+    {
+        httpClientBuilder.AddHttpMessageHandler<RetryHandler>();
     }
 }

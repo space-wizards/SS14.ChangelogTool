@@ -12,26 +12,26 @@ namespace SS14.ChangelogTool.Services;
 public class GitHubPullRequestService(
     HttpClient ghFileHttpClient,
     IGithubPullRequestClient ghPullRequestClient,
-    IOptions<ChangelogConfigOptions> options,
+    IOptions<ChangelogToolOptions> options,
     ILogger<GitHubPullRequestService> logger
 ) : IGitHubPullRequestService
 {
-    private readonly ChangelogConfigOptions _options = options.Value;
+    private readonly ChangelogToolOptions _options = options.Value;
     private readonly ILogger<GitHubPullRequestService> _logger = logger;
 
     private const string GithubRawDownloadBase = "https://raw.githubusercontent.com";
 
     /// <inheritdoc/>
-    public DateTimeOffset GetLastMergedFromRef(string sinceRefSha, IReadOnlyCollection<string> extraCategories)
+    public DateTimeOffset GetNewestChangelogEntryMergeDateByRef(string refSha, IReadOnlyCollection<string> extraCategories)
     {
         var lastMergedTime = DateTimeOffset.MinValue;
 
-        var allCategories = new List<string> { "Changelog" };
-        allCategories.AddRange(extraCategories);
+        var allCategories = new HashSet<string> { "Changelog" };
+        allCategories.UnionWith(extraCategories);
 
         foreach (var category in allCategories)
         {
-            var changelogContainer = GetChangelogByRef(sinceRefSha, category);
+            var changelogContainer = GetChangelogByRef(refSha, category);
             var categoryLastMergedTime = DateTimeOffset.MinValue;
             foreach (var entry in changelogContainer.Entries)
             {
