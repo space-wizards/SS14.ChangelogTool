@@ -9,7 +9,7 @@
       <PackAsTool>true</PackAsTool>
       <ToolCommandName>ss14-changelog</ToolCommandName>
       <PackageOutputPath>./nupkg</PackageOutputPath>
-      <PackageId>SS14.ChangelogTool</PackageId>
+      <PackageId>SpaceWizards.ChangelogTool</PackageId>
       <PackageVersion>1.0.0</PackageVersion>
       <Authors>Space Wizards</Authors>
       <Description>Changelog generator for SS14 repositories</Description>
@@ -17,7 +17,12 @@
       <RepositoryUrl>https://github.com/space-wizards/SS14.ChangelogTool.git</RepositoryUrl>
       <PackageLicenseExpression>MIT</PackageLicenseExpression>
       <PackageTags>ss14;changelog;space-station-14</PackageTags>
+      <PackageReadmeFile>README.Usage.md</PackageReadmeFile>
     </PropertyGroup>
+
+    <ItemGroup>
+      <None Include="..\README.Usage.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="GraphQL.Client" Version="6.1.0" />

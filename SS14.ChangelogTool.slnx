@@ -3,6 +3,7 @@
     <File Path=".github/workflows/build.yml" />
     <File Path=".github/workflows/publish.yml" />
     <File Path="README.MD" />
+    <File Path="README.Usage.md" />
   </Folder>
   <Project Path="SS14.ChangelogTool.Tests/SS14.ChangelogTool.Tests.csproj" />
   <Project Path="SS14.ChangelogTool/SS14.ChangelogTool.csproj" />

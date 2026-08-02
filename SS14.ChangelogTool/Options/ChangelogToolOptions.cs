@@ -85,6 +85,6 @@ public sealed class ChangelogToolOptions
     /// Minimum wait time between attempts for gh api calls when api call fails.
     /// Uses exponential backoff retries.
     /// </summary>
-    [ConfigurationKeyName("Min_WAIT_FOR_GIT_HUB_API_SECONDS")]
+    [ConfigurationKeyName("MIN_WAIT_FOR_GIT_HUB_API_SECONDS")]
     public int MinWaitForGitHubApiSeconds { get; set; } = 2;
 }
