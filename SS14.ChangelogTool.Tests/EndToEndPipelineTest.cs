@@ -317,14 +317,18 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
         Assert.Equal(originalContent, updatedContent);
     }
 
-    [Fact]
-    public void UpdateWithMultipleChangeTypesInOnePREntry()
+    [Theory]
+    [InlineData(null)] // Base case
+    [InlineData("Admin")] // Modified primary changelog
+    [InlineData("Maps")]
+    [InlineData("Rules")]
+    public void UpdateWithMultipleChangeTypesInOnePREntryAndPrimaryChangelog(string? primaryChangelog = null)
     {
         // Arrange
         var services = new ServiceCollection();
         services.RegisterDependencies();
 
-        OverrideOptions(services);
+        OverrideOptions(services, primaryChangelog: primaryChangelog);
 
         services.RemoveAll<IGitHubPullRequestService>();
         var ghService = Substitute.For<IGitHubPullRequestService>();
@@ -359,7 +363,7 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
         parseResult.Invoke();
 
         // Assert
-        var changelogPath = Path.Combine(virtualDir, "Changelog.yml");
+        var changelogPath = Path.Combine(virtualDir, $"{primaryChangelog ?? "Changelog"}.yml");
         var updatedContent = File.ReadAllText(changelogPath);
 
         // Verify all change types appear
@@ -588,7 +592,7 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
         return tempPath;
     }
 
-    private static void OverrideOptions(ServiceCollection services, int? maxLogEntries = null, string? extraCategories = null)
+    private static void OverrideOptions(ServiceCollection services, int? maxLogEntries = null, string? extraCategories = null, string? primaryChangelog = null)
     {
         services.RemoveAll<IConfigureOptions<ChangelogToolOptions>>();
         var config = new ChangelogToolOptions
@@ -602,6 +606,7 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
             ExtraCategories = extraCategories,
             DiscordWebHook = "https://discord.com/api/webhooks/test",
             DiscordWebhookCharacterLimit = 2000,
+            PrimaryChangelog = primaryChangelog ?? "Changelog",
         };
         services.AddSingleton(Microsoft.Extensions.Options.Options.Create(config));
     }

@@ -30,8 +30,17 @@ public sealed class ChangelogToolOptions
     public required string ChangelogRepoPath { get; set; }
 
     /// <summary>
+    /// The main file that will be updated when generating changelogs.
+    /// This defaults to 'Changelog' which generates to Changelog.yml.
+    /// Forks will typically want to change this value to match the name of their changelog file.
+    /// </summary>
+    [ConfigurationKeyName("PRIMARY_CHANGELOG")]
+    public string PrimaryChangelog { get; set; } = "Changelog";
+    
+    /// <summary>
     /// The extra categories to scan. E.g. for wizden there is Admin, Maps and Rule.
     /// IF multiple needed - separate them using ','.
+    /// If they are enabled, the last ran time will be affected by them as well. 
     /// </summary>
     [ConfigurationKeyName("EXTRA_CATEGORIES")]
     public string? ExtraCategories { get; set; }

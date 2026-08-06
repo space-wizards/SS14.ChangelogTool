@@ -26,7 +26,7 @@ public class GitHubPullRequestService(
     {
         var lastMergedTime = DateTimeOffset.MinValue;
 
-        var allCategories = new HashSet<string> { "Changelog" };
+        var allCategories = new HashSet<string> { _options.PrimaryChangelog };
         allCategories.UnionWith(extraCategories);
 
         foreach (var category in allCategories)

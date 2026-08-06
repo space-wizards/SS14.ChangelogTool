@@ -12,6 +12,8 @@ REPO=space-wizards/space-station-14
 BRANCH=master
 # path to changelog files inside repo
 CHANGELOG_REPO_PATH=Resources/Changelog
+# primary outputted changelog yaml file; default outputs Changelog.yml
+PRIMARY_CHANGELOG=Changelog
 # comma-separated list of additional changelog categories; creates/updates separate YAML files like Admin.yml, Maps.yml, etc.
 EXTRA_CATEGORIES=Admin,Maps,Rules
 # GitHub personal access token or Actions workflow token with read access to pull requests
