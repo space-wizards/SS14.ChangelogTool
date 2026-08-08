@@ -11,6 +11,7 @@ namespace SS14.ChangelogTool.Services;
 public class ChangelogFileManager(ILocalGitRepository repository, IOptions<ChangelogToolOptions> options, ILogger<ChangelogFileManager> logger)
     : IChangelogFileManager
 {
+    private readonly ChangelogToolOptions _options = options.Value;
     private readonly int _maxChangelogEntries = options.Value.MaxChangelogEntries;
 
     /// <summary>
@@ -90,10 +91,28 @@ public class ChangelogFileManager(ILocalGitRepository repository, IOptions<Chang
     }
 
     /// <inheritdoc/>
-    public void UpdateChangelogs(Dictionary<string, List<ChangelogEntry>> changelogParts, string changelogDir)
+    public void UpdateChangelogs(
+        Dictionary<string, List<ChangelogEntry>> changelogParts,
+        IReadOnlyCollection<int> revertedPullRequestNumbers,
+        string changelogDir)
     {
-        foreach (var (category, changelogEntries) in changelogParts)
+        var revertedSet = revertedPullRequestNumbers.ToHashSet();
+
+        var deserializer = new DeserializerBuilder()
+            .Build();
+
+        var categories = new HashSet<string>{ Constants.MainCategory };
+        categories.UnionWith(
+            _options.ExtraCategories == null
+                ? []
+                : _options.ExtraCategories.Split(',')
+        );
+
+        foreach (var category in categories)
         {
+            if(revertedPullRequestNumbers.Count == 0 && !changelogParts.ContainsKey(category))
+                continue;
+
             var categoryFile = category == Constants.MainCategory
                 ? "Changelog"
                 : category;
@@ -101,9 +120,6 @@ public class ChangelogFileManager(ILocalGitRepository repository, IOptions<Chang
             var changelogYmlPath = Path.Combine(changelogDir, $"{categoryFile}.yml");
 
             logger.LogInformation("Writing changelog part {ChangelogYmlPath}", changelogYmlPath);
-
-            var deserializer = new DeserializerBuilder()
-                .Build();
 
             ChangelogContainer result;
             using (var streamToRead = File.OpenRead(changelogYmlPath))
@@ -116,11 +132,22 @@ public class ChangelogFileManager(ILocalGitRepository repository, IOptions<Chang
 
             var lastEntryId = entries.Max(x => x.Id);
 
-            foreach (var changelogEntry in changelogEntries)
+            if (changelogParts.TryGetValue(category, out var changelogEntries))
             {
-                changelogEntry.Id = ++lastEntryId;
-                result.Entries.Add(changelogEntry);
+                foreach (var changelogEntry in changelogEntries)
+                {
+                    changelogEntry.Id = ++lastEntryId;
+                    result.Entries.Add(changelogEntry);
+                }
             }
+
+            entries.RemoveAll(entry =>
+            {
+                if (!TryGetPullRequestNumber(entry.Url, out var prNumber))
+                    return false;
+
+                return revertedSet.Contains(prNumber);
+            });
 
             var exceededBy = entries.Count - _maxChangelogEntries;
             if (exceededBy > 0)
@@ -139,5 +166,19 @@ public class ChangelogFileManager(ILocalGitRepository repository, IOptions<Chang
                 .Build();
             serializer.Serialize(writer, result);
         }
+    }
+
+    /// <summary>
+    /// Tries to extract the pull request number from a changelog entry URL.
+    /// GitHub PR URLs look like <c>https://github.com/owner/repo/pull/{number}</c>.
+    /// </summary>
+    private static bool TryGetPullRequestNumber(string url, out int prNumber)
+    {
+        prNumber = 0;
+        if (string.IsNullOrWhiteSpace(url))
+            return false;
+
+        var lastSegment = url.TrimEnd('/').Split('/').LastOrDefault();
+        return int.TryParse(lastSegment, out prNumber);
     }
 }

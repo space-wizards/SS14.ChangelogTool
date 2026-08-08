@@ -21,7 +21,7 @@ public sealed class UpdateCommand : Command
             var changeLogDir = parseResult.GetValue(changelogDirOption)!;
             return await changelogGenerator.TryGenerate(
                 extraCategories => changelogFileManager.GetLastMergedSha(changeLogDir, extraCategories),
-                changelogs => changelogFileManager.UpdateChangelogs(changelogs, changeLogDir)
+                (changelogs, revertedPrNumbers) => changelogFileManager.UpdateChangelogs(changelogs, revertedPrNumbers, changeLogDir)
             ) ? 0 : 1;
         });
     }

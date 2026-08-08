@@ -8,8 +8,8 @@ namespace SS14.ChangelogTool.Services;
 public interface IGitHubPullRequestService
 {
     /// <summary>
-    /// Gets list of pull-requests that were merged since provided commit hash.
+    /// Gets the diff (new pull requests and reverted pull request numbers) since the provided commit hash.
     /// Repo is set by app settings.
     /// </summary>
-    Task<IReadOnlyCollection<GitHubPullRequest>> GetDiff(string sinceSha);
+    Task<GitHubDiff> GetDiff(string sinceSha);
 }

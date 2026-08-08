@@ -42,22 +42,25 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
         services.RemoveAll<IGitHubPullRequestService>();
         var ghService = Substitute.For<IGitHubPullRequestService>();
         ghService.GetDiff(lastChangeSha)
-                 .Returns([
-                     new GitHubPullRequest(
-                         Merged: true,
-                         """
-                         Adds the cool feature!
-
-                         :cl:
-                         - add: Integration test feature
-                         """,
-                         new GitHubUser("TestUser"),
-                         new DateTimeOffset(new DateTime(2022,12,5,12,3,5), TimeSpan.Zero),
-                         new GitHubPullRequestBase("master"),
-                         Number: 42,
-                         "https://example.com/pr/42"
-                     )
-                 ]);
+                 .Returns(new GitHubDiff(
+                     [
+                         new GitHubPullRequest(
+                             Merged: true,
+                             """
+                             Adds the cool feature!
+ 
+                             :cl:
+                             - add: Integration test feature
+                             """,
+                             new GitHubUser("TestUser"),
+                             new DateTimeOffset(new DateTime(2022,12,5,12,3,5), TimeSpan.Zero),
+                             new GitHubPullRequestBase("master"),
+                             Number: 42,
+                             "https://example.com/pr/42"
+                         )
+                     ],
+                     []
+                 ));
         services.AddSingleton(ghService);
 
         // Use temp directory with resource files for this integration-style test
@@ -119,15 +122,18 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
         services.RemoveAll<IGitHubPullRequestService>();
         var ghService = Substitute.For<IGitHubPullRequestService>();
         ghService.GetDiff(lastChangeSha)
-                 .Returns([
-                     new GitHubPullRequest(true,
-                         ":cl: \n- add: Fresh new entry",
-                         new GitHubUser("NewUser"),
-                         new DateTimeOffset(new DateTime(2022,12,5,12,3,5), TimeSpan.Zero),
-                         new GitHubPullRequestBase("master"),
-                         999,
-                         "https://example.com/pr/999")
-                 ]);
+                 .Returns(new GitHubDiff(
+                     [
+                         new GitHubPullRequest(true,
+                             ":cl: \n- add: Fresh new entry",
+                             new GitHubUser("NewUser"),
+                             new DateTimeOffset(new DateTime(2022,12,5,12,3,5), TimeSpan.Zero),
+                             new GitHubPullRequestBase("master"),
+                             999,
+                             "https://example.com/pr/999")
+                     ],
+                     []
+                 ));
         services.AddSingleton(ghService);
 
 
@@ -213,26 +219,29 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
         services.RemoveAll<IGitHubPullRequestService>();
         var ghService = Substitute.For<IGitHubPullRequestService>();
         ghService.GetDiff(lastChangeSha)
-                 .Returns([
-                     new GitHubPullRequest(
-                         Merged: true,
-                         """
-                         Multi-category PR!
+                 .Returns(new GitHubDiff(
+                     [
+                         new GitHubPullRequest(
+                             Merged: true,
+                             """
+                             Multi-category PR!
 
-                         :cl:
-                         - add: Added to main category
-                         admin:
-                         - fix: Fixed admin stuff
-                         maps:
-                         - tweak: Tweaked map
-                         """,
-                         new GitHubUser("CategoryUser"),
-                         new DateTimeOffset(new DateTime(2024,1,15,8,0,0), TimeSpan.Zero),
-                         new GitHubPullRequestBase("master"),
-                         Number: 200,
-                         "https://example.com/pr/200"
-                     )
-                 ]);
+                             :cl:
+                             - add: Added to main category
+                             admin:
+                             - fix: Fixed admin stuff
+                             maps:
+                             - tweak: Tweaked map
+                             """,
+                             new GitHubUser("CategoryUser"),
+                             new DateTimeOffset(new DateTime(2024,1,15,8,0,0), TimeSpan.Zero),
+                             new GitHubPullRequestBase("master"),
+                             Number: 200,
+                             "https://example.com/pr/200"
+                         )
+                     ],
+                     []
+                 ));
         services.AddSingleton(ghService);
 
 
@@ -313,20 +322,23 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
         services.RemoveAll<IGitHubPullRequestService>();
         var ghService = Substitute.For<IGitHubPullRequestService>();
         ghService.GetDiff(lastChangeSha)
-                 .Returns([
-                     new GitHubPullRequest(
-                         Merged: true,
-                         """
-                         This PR has no changelog header at all.
-                         Just some regular description.
-                         """,
-                         new GitHubUser("NoClUser"),
-                         new DateTimeOffset(new DateTime(2023,3,10,14,0,0), TimeSpan.Zero),
-                         new GitHubPullRequestBase("master"),
-                         Number: 101,
-                         "https://example.com/pr/101"
-                     )
-                 ]);
+                 .Returns(new GitHubDiff(
+                     [
+                         new GitHubPullRequest(
+                             Merged: true,
+                             """
+                             This PR has no changelog header at all.
+                             Just some regular description.
+                             """,
+                             new GitHubUser("NoClUser"),
+                             new DateTimeOffset(new DateTime(2023,3,10,14,0,0), TimeSpan.Zero),
+                             new GitHubPullRequestBase("master"),
+                             Number: 101,
+                             "https://example.com/pr/101"
+                         )
+                     ],
+                     []
+                 ));
         services.AddSingleton(ghService);
 
 
@@ -365,25 +377,28 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
         services.RemoveAll<IGitHubPullRequestService>();
         var ghService = Substitute.For<IGitHubPullRequestService>();
         ghService.GetDiff(lastChangeSha)
-                 .Returns([
-                     new GitHubPullRequest(
-                         Merged: true,
-                         """
-                         Big update with many changes!
+                 .Returns(new GitHubDiff(
+                     [
+                         new GitHubPullRequest(
+                             Merged: true,
+                             """
+                             Big update with many changes!
 
-                         :cl:
-                         - add: Added something new
-                         - fix: Fixed a bug
-                         - tweak: Tweaked some values
-                         - remove: Removed old thing
-                         """,
-                         new GitHubUser("MultiChangeUser"),
-                         new DateTimeOffset(new DateTime(2023,8,20,9,30,0), TimeSpan.Zero),
-                         new GitHubPullRequestBase("master"),
-                         Number: 150,
-                         "https://example.com/pr/150"
-                     )
-                 ]);
+                             :cl:
+                             - add: Added something new
+                             - fix: Fixed a bug
+                             - tweak: Tweaked some values
+                             - remove: Removed old thing
+                             """,
+                             new GitHubUser("MultiChangeUser"),
+                             new DateTimeOffset(new DateTime(2023,8,20,9,30,0), TimeSpan.Zero),
+                             new GitHubPullRequestBase("master"),
+                             Number: 150,
+                             "https://example.com/pr/150"
+                         )
+                     ],
+                     []
+                 ));
         services.AddSingleton(ghService);
 
 
@@ -408,6 +423,43 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
         Assert.Contains("Removed old thing", updatedContent);
     }
 
+    [Fact]
+    public void UpdateCommand_HasRevertedPullRequests_RemovesTheirEntriesFromChangelog()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.RegisterDependencies();
+
+        OverrideOptions(services);
+
+        const string lastChangeSha = "last-change-sha";
+        SetupLocalRepository(services, lastChangeSha, [new("some-sha", "fgdfgs (#5234)")]);
+
+        services.RemoveAll<IGitHubPullRequestService>();
+        var ghService = Substitute.For<IGitHubPullRequestService>();
+        ghService.GetDiff(lastChangeSha)
+                 .Returns(new GitHubDiff(
+                     [],
+                     [42915, 42696]
+                 ));
+        services.AddSingleton(ghService);
+
+        var virtualDir = CopyExistingChangelogs();
+        var sp = services.BuildServiceProvider();
+        var command = sp.GetRequiredService<RootCommand>();
+
+        // Act
+        var parseResult = command.Parse($"update --changelog-dir \"{virtualDir}\"");
+        var invokeResult = parseResult.Invoke(_invocationConfiguration);
+
+        // Assert
+        Assert.Equal(0, invokeResult);
+        var updatedContent = File.ReadAllText(Path.Combine(virtualDir, "Changelog.yml"));
+        Assert.DoesNotContain("Lizards can laugh again!", updatedContent);
+        Assert.DoesNotContain("/pull/42696", updatedContent);
+        Assert.Contains("Cyborgs can now pry unpowered doors without the need for a crowbar", updatedContent);
+    }
+
     #endregion
 
     #region DumpDiff
@@ -425,22 +477,25 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
         services.RemoveAll<IGitHubPullRequestService>();
         var ghService = Substitute.For<IGitHubPullRequestService>();
         ghService.GetDiff(Arg.Any<string>())
-            .Returns([
-                new GitHubPullRequest(
-                    Merged: true,
-                    """
-                    A PR with a cool changelog!
+            .Returns(new GitHubDiff(
+                [
+                    new GitHubPullRequest(
+                        Merged: true,
+                        """
+                        A PR with a cool changelog!
 
-                    :cl:
-                    - add: Dump diff entry
-                    """,
-                    new GitHubUser("TestUser"),
-                    new DateTimeOffset(new DateTime(2023,6,1,10,0,0), TimeSpan.Zero),
-                    new GitHubPullRequestBase("master"),
-                    Number: 99,
-                    "https://example.com/pr/99"
-                )
-            ]);
+                        :cl:
+                        - add: Dump diff entry
+                        """,
+                        new GitHubUser("TestUser"),
+                        new DateTimeOffset(new DateTime(2023,6,1,10,0,0), TimeSpan.Zero),
+                        new GitHubPullRequestBase("master"),
+                        Number: 99,
+                        "https://example.com/pr/99"
+                    )
+                ],
+                []
+            ));
 
         // Stub GetLastMergedFromRef to return a date that will trigger the diff
         services.AddSingleton(ghService);
@@ -477,24 +532,27 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
         services.RemoveAll<IGitHubPullRequestService>();
         var ghService = Substitute.For<IGitHubPullRequestService>();
         ghService.GetDiff(Arg.Any<string>())
-            .Returns([
-                new GitHubPullRequest(
-                    Merged: true,
-                    """
-                    PR with main and admin changes
+            .Returns(new GitHubDiff(
+                [
+                    new GitHubPullRequest(
+                        Merged: true,
+                        """
+                        PR with main and admin changes
 
-                    :cl:
-                    - add: Main category entry
-                    admin:
-                    - fix: Admin category entry
-                    """,
-                    new GitHubUser("ExcludeTestUser"),
-                    new DateTimeOffset(new DateTime(2024,5,1,12,0,0), TimeSpan.Zero),
-                    new GitHubPullRequestBase("master"),
-                    Number: 300,
-                    "https://example.com/pr/300"
-                )
-            ]);
+                        :cl:
+                        - add: Main category entry
+                        admin:
+                        - fix: Admin category entry
+                        """,
+                        new GitHubUser("ExcludeTestUser"),
+                        new DateTimeOffset(new DateTime(2024,5,1,12,0,0), TimeSpan.Zero),
+                        new GitHubPullRequestBase("master"),
+                        Number: 300,
+                        "https://example.com/pr/300"
+                    )
+                ],
+                []
+            ));
 
         services.AddSingleton(ghService);
 

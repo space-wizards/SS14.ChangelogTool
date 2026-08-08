@@ -5,6 +5,11 @@ using SS14.ChangelogTool.Options;
 
 namespace SS14.ChangelogTool.Services;
 
+public delegate void WriteChangelog(
+    Dictionary<string, List<ChangelogEntry>> changelogParts,
+    IReadOnlyCollection<int> prNumbersToRevert
+);
+
 public class ChangelogGeneratorService(
     IPullRequestParserService parserService,
     IGitHubPullRequestService githubService,
@@ -21,7 +26,7 @@ public class ChangelogGeneratorService(
     /// </summary>
     public async Task<bool> TryGenerate(
         Func<IReadOnlyCollection<string>, string> lastChangeShaProvider,
-        Action<Dictionary<string, List<ChangelogEntry>>> changelogWriter
+        WriteChangelog changelogWriter
     )
     {
         List<string> extraCategories = [];
@@ -36,21 +41,28 @@ public class ChangelogGeneratorService(
         // Get the list of PRs that were merged since last time.
         var diff = await githubService.GetDiff(lastMergeSha);
 
-        logger.LogInformation("Collected {PullRequestCount} pull requests.", diff.Count);
+        logger.LogInformation(
+            "Collected {PullRequestCount} pull requests and {RevertedPullRequestCount} reverted pull requests.",
+            diff.PullRequests.Count,
+            diff.RevertedPullRequestNumbers.Count
+        );
 
         // Generate a new YMLfest out of this
-        var changelogs = parserService.ExtractChangelogEntries(diff, extraCategories);
+        var changelogs = parserService.ExtractChangelogEntries(diff.PullRequests, extraCategories);
 
-        if (changelogs.Count == 0)
+        if (changelogs.Count == 0 && diff.RevertedPullRequestNumbers.Count == 0)
         {
             logger.LogInformation("Nothing to do");
             return true;
         }
 
-        logger.LogInformation("Generated {ChangelogCount} changelogs", changelogs.Count);
+        logger.LogInformation(
+            "Generated {ChangelogCount} changelogs, {RevertedPullRequestCount} reverts found.", 
+            changelogs.Count, 
+            diff.RevertedPullRequestNumbers.Count
+        );
 
-        // Add these parts to the actual changelog and trim older entries
-        changelogWriter(changelogs);
+        changelogWriter(changelogs, diff.RevertedPullRequestNumbers);
 
         return true;
     }

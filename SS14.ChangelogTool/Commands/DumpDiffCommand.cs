@@ -39,7 +39,7 @@ public sealed class DumpDiffCommand : Command
                 var exceptCategory = parseResult.GetValue(exceptCategoryOption)!;
                 return await changelogGeneratorService.TryGenerate(
                     _ => sha,
-                    changelogs => changelogFileManager.DumpChangelogToMarkdown(changelogMarkdownPath, changelogs, exceptCategory)
+                    (changelogs, _) => changelogFileManager.DumpChangelogToMarkdown(changelogMarkdownPath, changelogs, exceptCategory)
                 ) ? 0 : 1;
             }
         );
