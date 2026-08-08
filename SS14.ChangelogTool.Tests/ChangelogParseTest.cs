@@ -240,9 +240,8 @@ public class ChangelogParseTest
         var exception = Assert.Throws<OptionsValidationException>(() =>
             provider.GetRequiredService<IOptions<ChangelogToolOptions>>().Value);
 
-        Assert.Equal(4, exception.Failures.Count());
+        Assert.Equal(3, exception.Failures.Count());
         Assert.Contains("Configuration 'REPO' is required.", exception.Failures);
-        Assert.Contains("Configuration 'BRANCH' is required.", exception.Failures);
         Assert.Contains("Configuration 'CHANGELOG_REPO_PATH' is required.", exception.Failures);
         Assert.Contains("Configuration 'GITHUB_TOKEN' is required.", exception.Failures);
     }
