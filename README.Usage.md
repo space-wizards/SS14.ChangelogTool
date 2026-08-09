@@ -32,7 +32,6 @@ Recommended minimal local setup configuration
 ``` powershell
  $env:REPO="space-wizards/space-station-14"
  $env:CHANGELOG_REPO_PATH="Resources/Changelog"
- $env:BRANCH="master"
  $env:EXTRA_CATEGORIES="Admin,Maps,Rules"
  $env:GITHUB_TOKEN="<your gh api key with READ permission for PRs>"
 ```
@@ -43,6 +42,9 @@ Recommended minimal local setup configuration
   Walks the local git history from the current branch tip back to the newest commit that touched
   the changelog files. Extracts PR numbers from commit messages (`(#NNN)` suffix), fetches the PR details from GitHub
   through the GraphQL API in batches, and appends the parsed changelog entries to the local YAML files.
+  Revert commits (messages containing "revert", e.g. `Revert: 44644 - 40090 - 37716 - 42439 - 41004 (#44924)`) are
+  recognized as well: the referenced PRs are removed from the incoming entries and their existing changelog entries
+  are deleted from the YAML files.
 
   Example:
   ```powershell
