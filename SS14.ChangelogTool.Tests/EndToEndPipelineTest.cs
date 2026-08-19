@@ -85,8 +85,8 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
             """
             - author: ThatGuyUSA
               changes:
-              - type: Add
-                message: There are more IDs and icons that can be used for a variety of roles.
+              - message: There are more IDs and icons that can be used for a variety of roles.
+                type: Add
               id: 9355
               time: '2026-01-06T10:41:32.0000000+00:00'
               url: https://github.com/space-wizards/space-station-14/pull/42200
@@ -97,8 +97,8 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
         const string expectedEntry = """
                                      - author: TestUser
                                        changes:
-                                       - type: Add
-                                         message: Integration test feature
+                                       - message: Integration test feature
+                                         type: Add
                                        id: 9862
                                        time: '2022-12-05T12:03:05.0000000+00:00'
                                        url: https://example.com/pr/42
@@ -263,8 +263,8 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
             """
             - author: CategoryUser
               changes:
-              - type: Add
-                message: Added to main category
+              - message: Added to main category
+                type: Add
               id: 9862
               time: '2024-01-15T08:00:00.0000000+00:00'
               url: https://example.com/pr/200
@@ -280,8 +280,8 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
             """
             - author: CategoryUser
               changes:
-              - type: Fix
-                message: Fixed admin stuff
+              - message: Fixed admin stuff
+                type: Fix
               id: 232
               time: '2024-01-15T08:00:00.0000000+00:00'
               url: https://example.com/pr/200
@@ -297,8 +297,8 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
             """
             - author: CategoryUser
               changes:
-              - type: Tweak
-                message: Tweaked map
+              - message: Tweaked map
+                type: Tweak
               id: 150
               time: '2024-01-15T08:00:00.0000000+00:00'
               url: https://example.com/pr/200

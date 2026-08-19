@@ -14,7 +14,7 @@ public sealed record ChangeDescription
     {
     }
 
-    [YamlMember(Alias = "type")] public ChangeType Type { get; set; }
-
     [YamlMember(Alias = "message")] public string Message { get; set; }
+
+    [YamlMember(Alias = "type")] public ChangeType Type { get; set; }
 }

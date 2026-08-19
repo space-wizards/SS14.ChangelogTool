@@ -74,6 +74,30 @@ public class ChangelogParseTest
     }
 
     [Fact]
+    public void TestMissingUserDoesNotCrash()
+    {
+        const string text = """
+                            Did stuff!
+
+                            :cl:
+                            - add: Did the thing
+
+                            """;
+
+        var time = new DateTimeOffset(2021, 1, 1, 1, 1, 1, TimeSpan.Zero);
+        // GitHub returns "author: null" for PRs whose author account was deleted (User deserializes to null).
+        var pr = new GitHubPullRequest(true, text, null, time, new GitHubPullRequestBase("master"), 123,
+            "https://www.example.com");
+        IReadOnlyCollection<string> extraCategories = [];
+        var parsed = Services.ChangelogParserService.ParsePrBody(pr, extraCategories);
+
+        Assert.NotNull(parsed);
+        var entry = parsed.Single().Value;
+        Assert.Equal("Unknown", entry.Author);
+        Assert.Contains(entry.Changes, x => x == new ChangeDescription(ChangeType.Add, "Did the thing"));
+    }
+
+    [Fact]
     public void TestComment()
     {
         const string text = """

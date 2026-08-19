@@ -50,13 +50,15 @@ public partial class ChangelogParserService(ILogger<ChangelogParserService> logg
         var allCategories = new HashSet<string> { Constants.MainCategory };
         allCategories.UnionWith(extraCategories);
 
-        var body = CommentRegex().Replace(pr.Body, "");
+        var body = CommentRegex().Replace(pr.Body ?? "", "");
 
         var match = ChangelogHeaderRegex().Match(body);
         if (!match.Success)
             return [];
 
-        var author = match.Groups[1].Success ? match.Groups[1].Value.Trim() : pr.User.Login;
+        // GitHub returns "author: null" for pull requests whose author account was deleted,
+        // which deserializes User to null; fall back to a placeholder in that case.
+        var author = match.Groups[1].Success ? match.Groups[1].Value.Trim() : pr.User?.Login ?? "Unknown";
         var changelogBody = body.Substring(match.Index + match.Length);
 
         var currentCategory = Constants.MainCategory;

@@ -2,10 +2,10 @@
 
 public sealed record GitHubPullRequest(
     bool Merged,
-    string Body,
-    GitHubUser User,
+    string? Body,
+    GitHubUser? User,
     DateTimeOffset? MergedAt,
-    GitHubPullRequestBase Base,
+    GitHubPullRequestBase? Base,
     int Number,
     string Html_url
 );
