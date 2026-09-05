@@ -7,5 +7,4 @@ public enum ChangeType
     Remove,
     Fix,
     Tweak,
-    Experimental
 }

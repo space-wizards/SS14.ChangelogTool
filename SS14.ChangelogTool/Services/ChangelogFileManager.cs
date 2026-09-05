@@ -23,7 +23,6 @@ public class ChangelogFileManager(ILocalGitRepository repository, IOptions<Chang
         { ChangeType.Fix, "🐛" },
         { ChangeType.Remove, "❌" },
         { ChangeType.Tweak, "⚒️" },
-        { ChangeType.Experimental, "🧪" },
     };
 
     /// <inheritdoc/>
