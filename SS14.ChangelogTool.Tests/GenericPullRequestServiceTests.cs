@@ -4,13 +4,13 @@ using NSubstitute.ClearExtensions;
 using SS14.ChangelogTool.Clients;
 using SS14.ChangelogTool.LocalGit;
 using SS14.ChangelogTool.LocalGit.Models;
-using SS14.ChangelogTool.Models.GitHub;
+using SS14.ChangelogTool.Models.Generic;
 using SS14.ChangelogTool.Options;
 using SS14.ChangelogTool.Services;
 
 namespace SS14.ChangelogTool.Tests;
 
-public class GitHubPullRequestServiceTests
+public class GenericPullRequestServiceTests
 {
     private readonly ChangelogToolOptions _changelogToolOptions = new()
     {
@@ -23,23 +23,23 @@ public class GitHubPullRequestServiceTests
     private const string Repo = "space-wizards/space-station-14";
     private const string SinceSha = "base-sha";
 
-    private readonly IGithubGraphQLClient _client;
+    private readonly INetworkGitRepositoryClient _client;
     private readonly ILocalGitRepository _repository;
-    private readonly GitHubPullRequestService _cut;
+    private readonly GenericPullRequestService _cut;
 
-    public GitHubPullRequestServiceTests()
+    public GenericPullRequestServiceTests()
     {
-        _client = Substitute.For<IGithubGraphQLClient>();
+        _client = Substitute.For<INetworkGitRepositoryClient>();
         _repository = Substitute.For<ILocalGitRepository>();
 
         _client.GetPullRequests(Arg.Any<string>(), Arg.Any<IReadOnlyCollection<int>>())
                .Returns([]);
 
-        _cut = new GitHubPullRequestService(
+        _cut = new GenericPullRequestService(
             _client,
             _repository,
             Microsoft.Extensions.Options.Options.Create(_changelogToolOptions),
-            NullLogger<GitHubPullRequestService>.Instance
+            NullLogger<GenericPullRequestService>.Instance
         );
     }
 
@@ -108,8 +108,8 @@ public class GitHubPullRequestServiceTests
         Assert.Contains(2, diff.PullRequests.Select(x => x.Number));
     }
 
-    private static GitHubPullRequest PullRequestFactory(int pullRequestNumber)
+    private static GenericPullRequest PullRequestFactory(int pullRequestNumber)
     {
-        return new GitHubPullRequest(true, "some-buddy", new GitHubUser("sm1"), new DateTimeOffset(), new GitHubPullRequestBase("ref"), pullRequestNumber, "some-url");
+        return new GenericPullRequest(true, "some-buddy", new GenericUser("sm1"), new DateTimeOffset(), new GenericPullRequestBase("ref"), pullRequestNumber, "some-url");
     }
 }

@@ -1,4 +1,4 @@
-namespace SS14.ChangelogTool.Models.GitHub;
+namespace SS14.ChangelogTool.Models.Generic;
 
 /// <summary>
 /// Result of a diff collected from local git history.
@@ -7,7 +7,7 @@ namespace SS14.ChangelogTool.Models.GitHub;
 /// <param name="RevertedPullRequestNumbers">
 /// PR numbers of pull requests that were reverted in the range and whose changelog entries should be removed.
 /// </param>
-public sealed record GitHubDiff(
-    IReadOnlyCollection<GitHubPullRequest> PullRequests,
+public sealed record GenericDiff(
+    IReadOnlyCollection<GenericPullRequest> PullRequests,
     IReadOnlyCollection<int> RevertedPullRequestNumbers
 );

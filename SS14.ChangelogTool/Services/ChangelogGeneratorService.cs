@@ -12,7 +12,7 @@ public delegate void WriteChangelog(
 
 public class ChangelogGeneratorService(
     IPullRequestParserService parserService,
-    IGitHubPullRequestService githubService,
+    IPullRequestService githubService,
     IOptions<ChangelogToolOptions> options,
     ILogger<ChangelogGeneratorService> logger
 )

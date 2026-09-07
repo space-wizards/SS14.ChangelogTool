@@ -1,4 +1,4 @@
-﻿using LibGit2Sharp;
+using LibGit2Sharp;
 using SS14.ChangelogTool.LocalGit.Models;
 
 namespace SS14.ChangelogTool.LocalGit;
@@ -100,7 +100,8 @@ public class LocalGitRepository : ILocalGitRepository
         var filter = new CommitFilter
         {
             IncludeReachableFrom = repository.Head.Tip, // Start from the current branch tip
-            ExcludeReachableFrom = baseCommit     // Stop at the target SHA (exclusive)
+            ExcludeReachableFrom = baseCommit,     // Stop at the target SHA (exclusive)
+            SortBy = CommitSortStrategies.Topological // Fixes some errors with orphaned commits
         };
 
         ICommitLog commitsSinceSha = repository.Commits.QueryBy(filter);

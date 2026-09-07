@@ -1,4 +1,4 @@
-﻿using GraphQL.Client.Abstractions;
+using GraphQL.Client.Abstractions;
 using GraphQL.Client.Http;
 using GraphQL.Client.Serializer.SystemTextJson;
 using Microsoft.Extensions.Configuration;
@@ -13,6 +13,7 @@ using SS14.ChangelogTool.Options;
 using SS14.ChangelogTool.Services;
 using System.CommandLine;
 using System.Net;
+using System.Net.Http.Headers;
 using SS14.ChangelogTool.LocalGit;
 
 namespace SS14.ChangelogTool;
@@ -30,6 +31,11 @@ public static class Registry
             .ValidateOnStart();
 
         services.AddSingleton<IValidateOptions<ChangelogToolOptions>, ChangelogToolOptionsValidator>();
+        
+        var options = configuration.Get<ChangelogToolOptions>();
+
+        if (options is null)
+            throw new KeyNotFoundException();
 
         services.AddLogging(builder =>
         {
@@ -42,9 +48,24 @@ public static class Registry
         });
         services.AddSingleton<IChangelogFileManager, ChangelogFileManager>();
         services.AddSingleton<IPullRequestParserService, ChangelogParserService>();
-        services.AddSingleton<IGitHubPullRequestService, GitHubPullRequestService>();
+        services.AddSingleton<IPullRequestService, GenericPullRequestService>();
         services.AddSingleton<ILocalGitRepository, LocalGitRepository>();
-        services.AddSingleton<IGithubGraphQLClient, GithubGraphQLClient>();
+        
+        # region Pull Request Clients
+        
+        switch (options.PrProvider)
+        {
+            case PullRequestProvider.GitHub:
+                services.AddSingleton<INetworkGitRepositoryClient, GithubGraphQLClient>();
+                break;
+            case PullRequestProvider.Forgejo:
+                services.AddSingleton<INetworkGitRepositoryClient, ForgejoGitRepositoryClient>();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+        
+        # endregion
 
         #region clients of different flavours
 

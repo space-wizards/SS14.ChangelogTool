@@ -6,12 +6,12 @@ using Microsoft.Extensions.Options;
 using NSubstitute;
 using SS14.ChangelogTool.LocalGit;
 using SS14.ChangelogTool.LocalGit.Models;
-using SS14.ChangelogTool.Models.GitHub;
 using SS14.ChangelogTool.Options;
 using SS14.ChangelogTool.Services;
 using SS14.ChangelogTool.Tests.TestInfrastructure;
 using System.CommandLine;
 using System.Text.RegularExpressions;
+using SS14.ChangelogTool.Models.Generic;
 using Xunit.Abstractions;
 
 namespace SS14.ChangelogTool.Tests;
@@ -40,12 +40,12 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
         SetupLocalRepository(services, lastChangeSha, [new(lastChangeSha, "fgdfgs (#5234)")]);
 
         // Stub out the GitHub service so it doesn't try to make real HTTP calls
-        services.RemoveAll<IGitHubPullRequestService>();
-        var ghService = Substitute.For<IGitHubPullRequestService>();
+        services.RemoveAll<IPullRequestService>();
+        var ghService = Substitute.For<IPullRequestService>();
         ghService.GetDiff(lastChangeSha)
-                 .Returns(new GitHubDiff(
+                 .Returns(new GenericDiff(
                      [
-                         new GitHubPullRequest(
+                         new GenericPullRequest(
                              Merged: true,
                              """
                              Adds the cool feature!
@@ -53,9 +53,9 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
                              :cl:
                              - add: Integration test feature
                              """,
-                             new GitHubUser("TestUser"),
+                             new GenericUser("TestUser"),
                              new DateTimeOffset(new DateTime(2022,12,5,12,3,5), TimeSpan.Zero),
-                             new GitHubPullRequestBase("master"),
+                             new GenericPullRequestBase("master"),
                              Number: 42,
                              "https://example.com/pr/42"
                          )
@@ -129,12 +129,12 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
         services.AddSingleton(repo);
 
         // Stub out the GitHub service so it doesn't try to make real HTTP calls
-        services.RemoveAll<IGitHubPullRequestService>();
-        var ghService = Substitute.For<IGitHubPullRequestService>();
+        services.RemoveAll<IPullRequestService>();
+        var ghService = Substitute.For<IPullRequestService>();
         ghService.GetDiff(fixedSha)
-                 .Returns(new GitHubDiff(
+                 .Returns(new GenericDiff(
                      [
-                         new GitHubPullRequest(
+                         new GenericPullRequest(
                              Merged: true,
                              """
                              Adds the cool feature!
@@ -142,9 +142,9 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
                              :cl:
                              - add: Integration test feature
                              """,
-                             new GitHubUser("TestUser"),
+                             new GenericUser("TestUser"),
                              new DateTimeOffset(new DateTime(2022,12,5,12,3,5), TimeSpan.Zero),
-                             new GitHubPullRequestBase("master"),
+                             new GenericPullRequestBase("master"),
                              Number: 42,
                              "https://example.com/pr/42"
                          )
@@ -212,16 +212,16 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
         const string lastChangeSha = "last-change-sha";
         SetupLocalRepository(services, lastChangeSha, [new("some-sha", "fgdfgs (#5234)")]);
 
-        services.RemoveAll<IGitHubPullRequestService>();
-        var ghService = Substitute.For<IGitHubPullRequestService>();
+        services.RemoveAll<IPullRequestService>();
+        var ghService = Substitute.For<IPullRequestService>();
         ghService.GetDiff(lastChangeSha)
-                 .Returns(new GitHubDiff(
+                 .Returns(new GenericDiff(
                      [
-                         new GitHubPullRequest(true,
+                         new GenericPullRequest(true,
                              ":cl: \n- add: Fresh new entry",
-                             new GitHubUser("NewUser"),
+                             new GenericUser("NewUser"),
                              new DateTimeOffset(new DateTime(2022,12,5,12,3,5), TimeSpan.Zero),
-                             new GitHubPullRequestBase("master"),
+                             new GenericPullRequestBase("master"),
                              999,
                              "https://example.com/pr/999")
                      ],
@@ -309,12 +309,12 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
         const string lastChangeSha = "last-change-sha";
         SetupLocalRepository(services, lastChangeSha, [new("some-sha", "fgdfgs (#5234)")]);
 
-        services.RemoveAll<IGitHubPullRequestService>();
-        var ghService = Substitute.For<IGitHubPullRequestService>();
+        services.RemoveAll<IPullRequestService>();
+        var ghService = Substitute.For<IPullRequestService>();
         ghService.GetDiff(lastChangeSha)
-                 .Returns(new GitHubDiff(
+                 .Returns(new GenericDiff(
                      [
-                         new GitHubPullRequest(
+                         new GenericPullRequest(
                              Merged: true,
                              """
                              Multi-category PR!
@@ -326,9 +326,9 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
                              maps:
                              - tweak: Tweaked map
                              """,
-                             new GitHubUser("CategoryUser"),
+                             new GenericUser("CategoryUser"),
                              new DateTimeOffset(new DateTime(2024,1,15,8,0,0), TimeSpan.Zero),
-                             new GitHubPullRequestBase("master"),
+                             new GenericPullRequestBase("master"),
                              Number: 200,
                              "https://example.com/pr/200"
                          )
@@ -412,20 +412,20 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
         const string lastChangeSha = "last-change-sha";
         SetupLocalRepository(services, lastChangeSha, [new("some-sha", "fgdfgs (#5234)")]);
 
-        services.RemoveAll<IGitHubPullRequestService>();
-        var ghService = Substitute.For<IGitHubPullRequestService>();
+        services.RemoveAll<IPullRequestService>();
+        var ghService = Substitute.For<IPullRequestService>();
         ghService.GetDiff(lastChangeSha)
-                 .Returns(new GitHubDiff(
+                 .Returns(new GenericDiff(
                      [
-                         new GitHubPullRequest(
+                         new GenericPullRequest(
                              Merged: true,
                              """
                              This PR has no changelog header at all.
                              Just some regular description.
                              """,
-                             new GitHubUser("NoClUser"),
+                             new GenericUser("NoClUser"),
                              new DateTimeOffset(new DateTime(2023,3,10,14,0,0), TimeSpan.Zero),
-                             new GitHubPullRequestBase("master"),
+                             new GenericPullRequestBase("master"),
                              Number: 101,
                              "https://example.com/pr/101"
                          )
@@ -470,12 +470,12 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
         const string lastChangeSha = "last-change-sha";
         SetupLocalRepository(services, lastChangeSha, [new("some-sha", "fgdfgs (#5234)")]);
 
-        services.RemoveAll<IGitHubPullRequestService>();
-        var ghService = Substitute.For<IGitHubPullRequestService>();
+        services.RemoveAll<IPullRequestService>();
+        var ghService = Substitute.For<IPullRequestService>();
         ghService.GetDiff(lastChangeSha)
-                 .Returns(new GitHubDiff(
+                 .Returns(new GenericDiff(
                      [
-                         new GitHubPullRequest(
+                         new GenericPullRequest(
                              Merged: true,
                              """
                              Big update with many changes!
@@ -486,9 +486,9 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
                              - tweak: Tweaked some values
                              - remove: Removed old thing
                              """,
-                             new GitHubUser("MultiChangeUser"),
+                             new GenericUser("MultiChangeUser"),
                              new DateTimeOffset(new DateTime(2023,8,20,9,30,0), TimeSpan.Zero),
-                             new GitHubPullRequestBase("master"),
+                             new GenericPullRequestBase("master"),
                              Number: 150,
                              "https://example.com/pr/150"
                          )
@@ -532,12 +532,12 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
         const string lastChangeSha = "last-change-sha";
         SetupLocalRepository(services, lastChangeSha, [new("some-sha", "fgdfgs (#5234)")]);
 
-        services.RemoveAll<IGitHubPullRequestService>();
-        var ghService = Substitute.For<IGitHubPullRequestService>();
+        services.RemoveAll<IPullRequestService>();
+        var ghService = Substitute.For<IPullRequestService>();
         ghService.GetDiff(lastChangeSha)
-                 .Returns(new GitHubDiff(
+                 .Returns(new GenericDiff(
                      [
-                         new GitHubPullRequest(
+                         new GenericPullRequest(
                              Merged: true,
                              """
                              Big update with many changes!
@@ -548,9 +548,9 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
                              - tweak: Tweaked some values
                              - remove: Removed old thing
                              """,
-                             new GitHubUser("MultiChangeUser"),
+                             new GenericUser("MultiChangeUser"),
                              new DateTimeOffset(new DateTime(2023,8,20,9,30,0), TimeSpan.Zero),
-                             new GitHubPullRequestBase("master"),
+                             new GenericPullRequestBase("master"),
                              Number: 150,
                              "https://example.com/pr/150"
                          )
@@ -583,10 +583,10 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
         const string lastChangeSha = "last-change-sha";
         SetupLocalRepository(services, lastChangeSha, [new("some-sha", "fgdfgs (#5234)")]);
 
-        services.RemoveAll<IGitHubPullRequestService>();
-        var ghService = Substitute.For<IGitHubPullRequestService>();
+        services.RemoveAll<IPullRequestService>();
+        var ghService = Substitute.For<IPullRequestService>();
         ghService.GetDiff(lastChangeSha)
-                 .Returns(new GitHubDiff(
+                 .Returns(new GenericDiff(
                      [],
                      [42915, 42696]
                  ));
@@ -620,10 +620,10 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
         const string lastChangeSha = "last-change-sha";
         SetupLocalRepository(services, lastChangeSha, [new("some-sha", "fgdfgs (#5234)")]);
 
-        services.RemoveAll<IGitHubPullRequestService>();
-        var ghService = Substitute.For<IGitHubPullRequestService>();
+        services.RemoveAll<IPullRequestService>();
+        var ghService = Substitute.For<IPullRequestService>();
         ghService.GetDiff(lastChangeSha)
-                 .Returns(new GitHubDiff(
+                 .Returns(new GenericDiff(
                      [],
                      [42915, 42696]
                  ));
@@ -659,12 +659,12 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
         OverrideOptions(services);
 
         // Stub out the GitHub service
-        services.RemoveAll<IGitHubPullRequestService>();
-        var ghService = Substitute.For<IGitHubPullRequestService>();
+        services.RemoveAll<IPullRequestService>();
+        var ghService = Substitute.For<IPullRequestService>();
         ghService.GetDiff(Arg.Any<string>())
-            .Returns(new GitHubDiff(
+            .Returns(new GenericDiff(
                 [
-                    new GitHubPullRequest(
+                    new GenericPullRequest(
                         Merged: true,
                         """
                         A PR with a cool changelog!
@@ -672,9 +672,9 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
                         :cl:
                         - add: Dump diff entry
                         """,
-                        new GitHubUser("TestUser"),
+                        new GenericUser("TestUser"),
                         new DateTimeOffset(new DateTime(2023,6,1,10,0,0), TimeSpan.Zero),
-                        new GitHubPullRequestBase("master"),
+                        new GenericPullRequestBase("master"),
                         Number: 99,
                         "https://example.com/pr/99"
                     )
@@ -714,12 +714,12 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
 
         OverrideOptions(services, extraCategories: "Admin");
 
-        services.RemoveAll<IGitHubPullRequestService>();
-        var ghService = Substitute.For<IGitHubPullRequestService>();
+        services.RemoveAll<IPullRequestService>();
+        var ghService = Substitute.For<IPullRequestService>();
         ghService.GetDiff(Arg.Any<string>())
-            .Returns(new GitHubDiff(
+            .Returns(new GenericDiff(
                 [
-                    new GitHubPullRequest(
+                    new GenericPullRequest(
                         Merged: true,
                         """
                         PR with main and admin changes
@@ -729,9 +729,9 @@ public class EndToEndPipelineTest(ITestOutputHelper outputHelper) : IDisposable
                         admin:
                         - fix: Admin category entry
                         """,
-                        new GitHubUser("ExcludeTestUser"),
+                        new GenericUser("ExcludeTestUser"),
                         new DateTimeOffset(new DateTime(2024,5,1,12,0,0), TimeSpan.Zero),
-                        new GitHubPullRequestBase("master"),
+                        new GenericPullRequestBase("master"),
                         Number: 300,
                         "https://example.com/pr/300"
                     )

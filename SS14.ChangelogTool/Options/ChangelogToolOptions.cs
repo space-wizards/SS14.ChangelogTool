@@ -16,6 +16,20 @@ public sealed class ChangelogToolOptions
     public required string Repo { get; set; }
 
     /// <summary>
+    /// The host of the repo. `codeberg.org` is the default option.
+    /// Currently, this only sets the API slug on the Forgejo PR provider
+    /// </summary>
+    [ConfigurationKeyName("HOST")]
+    public string Host { get; set; } = "codeberg.org";
+
+    /// <summary>
+    /// Allows you to switch to different PR providers.
+    /// This allows GitHub, and Forgejo. It defaults to GitHub.
+    /// </summary>
+    [ConfigurationKeyName("PR_PROVIDER")]
+    public PullRequestProvider PrProvider { get; set; } = PullRequestProvider.GitHub;
+
+    /// <summary>
     /// The relative path to the changelog directory. Should probably be Resources/Changelog.
     /// </summary>
     [Required]
@@ -108,4 +122,10 @@ public sealed class ChangelogToolOptions
     /// </remarks>
     [ConfigurationKeyName("IS_PROCESS_ONLY_FROM_CURRENT_REPO_ENABLED")]
     public bool IsProcessOnlyFromCurrentRepoEnabled { get; set; } = true;
+}
+
+public enum PullRequestProvider
+{
+    GitHub,
+    Forgejo,
 }

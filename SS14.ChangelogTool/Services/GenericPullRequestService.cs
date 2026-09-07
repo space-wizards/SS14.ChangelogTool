@@ -3,19 +3,19 @@ using Microsoft.Extensions.Options;
 using SS14.ChangelogTool.Clients;
 using SS14.ChangelogTool.LocalGit;
 using SS14.ChangelogTool.LocalGit.Models;
-using SS14.ChangelogTool.Models.GitHub;
 using SS14.ChangelogTool.Options;
 using System.Text.RegularExpressions;
+using SS14.ChangelogTool.Models.Generic;
 
 namespace SS14.ChangelogTool.Services;
 
 /// <inheritdoc/>
-public partial class GitHubPullRequestService(
-    IGithubGraphQLClient ghGraphQlClient,
+public partial class GenericPullRequestService(
+    INetworkGitRepositoryClient networkRepositoryClient,
     ILocalGitRepository repository,
     IOptions<ChangelogToolOptions> options,
-    ILogger<GitHubPullRequestService> logger
-) : IGitHubPullRequestService
+    ILogger<GenericPullRequestService> logger
+) : IPullRequestService
 {
     private readonly ChangelogToolOptions _options = options.Value;
 
@@ -39,7 +39,7 @@ public partial class GitHubPullRequestService(
     private static partial Regex AnyNumberRegex();
 
     /// <inheritdoc/>
-    public async Task<GitHubDiff> GetDiff(string sinceSha)
+    public async Task<GenericDiff> GetDiff(string sinceSha)
     {
         var repo = _options.Repo;
         // we first get list of commits since provided point til HEAD
@@ -83,11 +83,11 @@ public partial class GitHubPullRequestService(
             sinceSha
         );
 
-        var pullRequests = await ghGraphQlClient.GetPullRequests(repo, pullRequestNumbers);
+        var pullRequests = await networkRepositoryClient.GetPullRequests(repo, pullRequestNumbers);
         pullRequests = pullRequests.OrderBy(item => item.MergedAt)
                                    .ToList();
 
-        return new GitHubDiff(pullRequests, revertedPullRequestNumbers);
+        return new GenericDiff(pullRequests, revertedPullRequestNumbers);
     }
 
     private PrNumberAndRevertInfo? ExtractPullRequestNumbers(CommitBriefInfo commit)
@@ -140,7 +140,7 @@ public partial class GitHubPullRequestService(
 
         var shaAndPrNumber = commitsSinceSha.Select(x => (x.Commit.Sha, x.PrNum.Number))
                                             .ToArray();
-        var onlyFromCurrentRepo = await ghGraphQlClient.GetCommitsIntroducedByRepo(shaAndPrNumber, repo);
+        var onlyFromCurrentRepo = await networkRepositoryClient.GetCommitsIntroducedByRepo(shaAndPrNumber, repo);
 
         return commitsSinceSha.Where(x => onlyFromCurrentRepo.Contains(x.Commit.Sha))
                               .ToArray();

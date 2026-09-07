@@ -1,16 +1,8 @@
-﻿namespace SS14.ChangelogTool.Models.GitHub;
+﻿using SS14.ChangelogTool.Models.Generic;
 
-public sealed record GitHubPullRequest(
-    bool Merged,
-    string? Body,
-    GitHubUser? Author,
-    DateTimeOffset? MergedAt,
-    GitHubPullRequestBase? Base,
-    int Number,
-    string Url
-);
+namespace SS14.ChangelogTool.Models.GitHub;
 
 public sealed class GitHubPullRequestsResponse
 {
-    public Dictionary<string, GitHubPullRequest?> Repository { get; set; } = [];
+    public Dictionary<string, GenericPullRequest?> Repository { get; set; } = [];
 }

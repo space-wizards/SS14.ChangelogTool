@@ -6,6 +6,10 @@ Some of them are mandatory to start tool.
 ```
 # *MANDATORY* repository to inspect for missed changes in PRs
 REPO=space-wizards/space-station-14
+# Sets the API the host for the Forgejo PR provider. Default: `codeberg.org`
+HOST=github.com
+# Sets the PR provider, this is what is used to query for PRs. `Forgejo` is another option. Default: `GitHub`
+PR_PROVIDER=GitHub
 # *MANDATORY* path to changelog files inside repo
 CHANGELOG_REPO_PATH=Resources/Changelog
 # The main file that will be updated when generating changelogs that are not targeting some special extra categories.

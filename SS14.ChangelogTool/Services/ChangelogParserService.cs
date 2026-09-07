@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SS14.ChangelogTool.Models;
 using SS14.ChangelogTool.Models.GitHub;
 using System.Text.RegularExpressions;
+using SS14.ChangelogTool.Models.Generic;
 
 namespace SS14.ChangelogTool.Services;
 
@@ -22,7 +23,7 @@ public partial class ChangelogParserService(ILogger<ChangelogParserService> logg
 
     /// <inheritdoc/>
     public Dictionary<string, List<ChangelogEntry>> ExtractChangelogEntries(
-        IEnumerable<GitHubPullRequest> pullRequests,
+        IEnumerable<GenericPullRequest> pullRequests,
         List<string>? extraCategories = null
     )
     {
@@ -46,7 +47,7 @@ public partial class ChangelogParserService(ILogger<ChangelogParserService> logg
     }
 
 
-    public static Dictionary<string, ChangelogEntry> ParsePrBody(GitHubPullRequest pr, IReadOnlyCollection<string> extraCategories)
+    public static Dictionary<string, ChangelogEntry> ParsePrBody(GenericPullRequest pr, IReadOnlyCollection<string> extraCategories)
     {
         var allCategories = new HashSet<string> { Constants.MainCategory };
         allCategories.UnionWith(extraCategories);

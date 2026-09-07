@@ -1,4 +1,5 @@
 using SS14.ChangelogTool.Models;
+using SS14.ChangelogTool.Models.Generic;
 using SS14.ChangelogTool.Models.GitHub;
 
 namespace SS14.ChangelogTool.Services;
@@ -12,7 +13,7 @@ public interface IPullRequestParserService
     /// Parse PR bodies and extract relevant changelog data as entries grouped by changelog category they are related.
     /// </summary>
     Dictionary<string, List<ChangelogEntry>> ExtractChangelogEntries(
-        IEnumerable<GitHubPullRequest> pullRequests,
+        IEnumerable<GenericPullRequest> pullRequests,
         List<string>? extraCategories = null
     );
 }
